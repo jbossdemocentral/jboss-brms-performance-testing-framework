@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure>
+    <ear-subdeployments-isolated>false</ear-subdeployments-isolated>
+    <deployment>
+        <dependencies>
+            <module name="org.apache.commons.lang" />
+            <module name="org.dom4j" />
+        </dependencies>
+    </deployment>
+    <sub-deployment name="brms-testing-ejb-1.0-SNAPSHOT.jar">
+        <dependencies>
+            <module name="org.apache.commons.lang" />
+        </dependencies>
+    </sub-deployment>
+    <sub-deployment name="brms-testing-web-1.0-SNAPSHOT.war">
+        <dependencies>
+            <module name="org.apache.commons.lang" />
+        </dependencies>
+    </sub-deployment>
+</jboss-deployment-structure>

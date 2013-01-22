@@ -1,0 +1,95 @@
+body {
+    font-family: MS Sans Serif;
+    background-image: url("/resources/img/nemo_bg.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    padding-top: 40px;
+}
+
+/* Header and footer as defined in the template: */
+
+.header_column_1 {
+    width: 200px;
+    background-color: #FFFFFF;
+}
+
+.header_column_2 {
+    width: 200px;
+    background-color: #FFFFFF;
+}
+
+.header_column_3 {
+    width: 250px;
+    padding-left: 200px;
+    background-color: #FFFFFF;
+}
+
+.header_column_4 {
+    width: 150px;
+    background-color: #FFFFFF;
+}
+
+.footer_column_1 {
+    width: 450px;
+    text-align: right;
+    padding-right: 20px;
+    padding-top: 40px;
+}
+
+.footer_column_2 {
+    width: 450px;
+    text-align: left;
+    padding-left: 20px;
+    padding-top: 40px;
+}
+
+/* Tables in status overview and upload: */
+
+.rf-edt {
+    margin-left: auto;
+    margin-right: auto;    
+}
+
+.rf-edt-hdr,.rf-edt-hdr-c-cnt,.rf-edt-tbl-hdr,
+.rf-dt-hdr-c,.rf-dt-shdr-c {
+    background-image: none !important;
+    background-color: #0D0D61 !important;
+    color: #FFFFFF !important;
+}
+.rf-edt-hdr-c {
+    overflow-y: hidden;
+}
+
+.rf-edt-c,
+.rf-dt-c {
+    border-bottom-color: #ABC933 !important;
+}
+
+.rf-p-hdr,.rf-fu-hdr {
+    background-image: none !important;
+    background-color: #0D0D61 !important;
+    color: #FFFFFF !important;
+}
+
+tr.odd {
+    background-color: #FCFFFE;
+}
+
+tr.even {
+    background-color: #EAF1CD;
+}
+
+/* Pop-up windows: */
+
+.rf-pp-cntr {
+    border: none !important;
+    background: transparent !important;
+}
+
+.rf-pp-shdw {
+    border-radius: 17px !important;
+}
+
+.rf-pp-cnt-scrlr {
+    background: transparent !important;
+}

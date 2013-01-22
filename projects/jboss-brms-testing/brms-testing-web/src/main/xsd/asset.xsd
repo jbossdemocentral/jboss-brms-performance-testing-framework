@@ -1,0 +1,36 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="assets">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="asset" maxOccurs="unbounded" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="binaryLink" />
+                            <xs:element type="xs:string" name="checkInComment" />
+                            <xs:element type="xs:string" name="description" />
+                            <xs:element name="metadata">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="xs:string" name="binaryContentAttachmentFileName" />
+                                        <xs:element type="xs:dateTime" name="created" />
+                                        <xs:element type="xs:string" name="createdBy" />
+                                        <xs:element type="xs:string" name="disabled" />
+                                        <xs:element type="xs:string" name="format" />
+                                        <xs:element type="xs:dateTime" name="lastModified" />
+                                        <xs:element type="xs:string" name="note" />
+                                        <xs:element type="xs:string" name="title" />
+                                        <xs:element type="xs:string" name="uuid" />
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="refLink" />
+                            <xs:element type="xs:string" name="sourceLink" />
+                            <xs:element type="xs:string" name="type" />
+                            <xs:element type="xs:byte" name="version" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
