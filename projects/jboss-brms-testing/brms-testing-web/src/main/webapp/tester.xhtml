@@ -5,12 +5,14 @@
     <ui:define name="content">
         <h:form>
             <rich:panel style="width:400px;">
-                <f:facet name="header">
-                    <h:outputText value="Guvnor packages" />
-                </f:facet>
-                <rich:select valueChangeListener="">
+                <h:outputText value="Choose Guvnor package:" />
+                <rich:select id="guvnorPackage" value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.packageSelected}">
                     <f:selectItems value="#{testerBean.guvnorPackages}" />
                 </rich:select>
+            </rich:panel>
+            <rich:panel style="width:400px;">
+                <h:outputText value="Chosen package:" />
+                <h:outputText value="#{testerBean.selectedPackage.value}" />
             </rich:panel>
         </h:form>
     </ui:define>

@@ -18,7 +18,6 @@
             <groupId>org.drools</groupId>
             <artifactId>knowledge-api</artifactId>
             <version>${brms-version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.drools</groupId>
