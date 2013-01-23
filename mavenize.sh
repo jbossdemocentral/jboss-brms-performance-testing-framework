@@ -5,42 +5,68 @@ VERSION=5.3.1.BRMS
 
 command -v mvn -q >/dev/null 2>&1 || { echo >&2 "Maven is required but not installed yet... aborting."; exit 1; }
 
+installPom() {
+    mvn -q install:install-file -Dfile=../$SRC_DIR/$2-$VERSION.pom.xml -DgroupId=$1 -DartifactId=$2 -Dversion=$VERSION -Dpackaging=pom;
+}
+
+installBinary() {
+    unzip -q $2-$VERSION.jar META-INF/maven/$1/$2/pom.xml;
+    mvn -q install:install-file -DpomFile=./META-INF/maven/$1/$2/pom.xml -Dfile=$2-$VERSION.jar -DgroupId=$1 -DartifactId=$2 -Dversion=$VERSION -Dpackaging=jar;
+}
+
 echo
 echo Installing the BRMS binaries into the Maven repository...
 echo
 
 unzip -q $SRC_DIR/$BRMS jboss-brms-engine.zip
 unzip -q jboss-brms-engine.zip binaries/*
+unzip -q $SRC_DIR/$BRMS jboss-jbpm-engine.zip
+unzip -q -o -d ./binaries jboss-jbpm-engine.zip
 cd binaries
+
+echo Installing parent POMs...
+echo
+installPom org.drools droolsjbpm-parent
+installPom org.drools droolsjbpm-knowledge
+installPom org.drools drools-multiproject
+installPom org.drools droolsjbpm-tools
+installPom org.drools droolsjbpm-integration
+installPom org.drools guvnor
 
 echo Installing Drools binaries...
 echo
-mvn -q install:install-file -Dfile=drools-ant-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-ant -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-camel-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-camel -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-compiler-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-compiler -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-core-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-core -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-decisiontables-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-decisiontables -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=droolsjbpm-ide-$VERSION.jar -DgroupId=org.drools -DartifactId=droolsjbpm-ide -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-jsr94-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-jsr94 -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-persistence-jpa-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-persistence-jpa -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-templates-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-templates -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=drools-verifier-$VERSION.jar -DgroupId=org.drools -DartifactId=drools-verifier -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=knowledge-api-$VERSION.jar -DgroupId=org.drools -DartifactId=knowledge-api -Dversion=$VERSION -Dpackaging=jar
+# droolsjbpm-knowledge
+installBinary org.drools knowledge-api
+# drools-multiproject
+installBinary org.drools drools-core
+installBinary org.drools drools-compiler
+installBinary org.drools drools-jsr94
+installBinary org.drools drools-verifier
+installBinary org.drools drools-persistence-jpa
+installBinary org.drools drools-templates
+installBinary org.drools drools-decisiontables
+# droolsjbpm-tools
+installBinary org.drools drools-ant
+# droolsjbpm-integration
+installBinary org.drools drools-camel
+# guvnor
+installBinary org.drools droolsjbpm-ide-common
 
 echo Installing jBPM binaries...
 echo
-mvn -q install:install-file -Dfile=jbpm-bam-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-bam -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-bpmn2-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-bpmn2 -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-flow-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-flow -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-flow-builder-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-flow-builder -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-human-task-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-human-task -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-persistence-jpa-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-persistence-jpa -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-test-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-test -Dversion=$VERSION -Dpackaging=jar
-mvn -q install:install-file -Dfile=jbpm-workitems-$VERSION.jar -DgroupId=org.jbpm -DartifactId=jbpm-workitems -Dversion=$VERSION -Dpackaging=jar
+installBinary org.jbpm jbpm-flow
+installBinary org.jbpm jbpm-flow-builder
+installBinary org.jbpm jbpm-persistence-jpa
+installBinary org.jbpm jbpm-bam
+installBinary org.jbpm jbpm-bpmn2
+installBinary org.jbpm jbpm-workitems
+installBinary org.jbpm jbpm-human-task
+installBinary org.jbpm jbpm-test
 
 cd ..
 rm -rf binaries
 rm jboss-brms-engine.zip
+rm jboss-jbpm-engine.zip
 
 echo Installation of binaries "for" BRMS $VERSION complete.
 echo
