@@ -44,52 +44,66 @@ public class TesterBean implements Serializable {
     @Inject
     private transient Logger log;
 
-    private SelectItem selectedPackage = new SelectItem();
+    private final List<SelectItem> packageList = new ArrayList<SelectItem>();
+    private String selectedPackage = "";
+    private final List<String> assetList = new ArrayList<String>();
 
-    public List<SelectItem> getGuvnorPackages() {
-        log.debug("Retrieving packages from Guvnor.");
+    public List<SelectItem> getPackageList() {
+        if (packageList.isEmpty()) {
+            getGuvnorPackages();
+        }
+        return packageList;
+    }
+
+    private void getGuvnorPackages() {
+        log.info("Retrieving packages from Guvnor...");
 
         // Call Guvnor to retrieve the available packages.
         final Packages packages = getFromGuvnor(GUVNOR_API_PACKAGES_PATH, Packages.class);
 
         // Format the output.
-        log.debug("Current packages in Guvnor:");
-        final List<SelectItem> packageNameList = new ArrayList<SelectItem>();
+        packageList.clear();
+        packageList.add(new SelectItem(""));
+        log.info("Current packages in Guvnor:");
         for (final org.jboss.brms.test.guvnor.Packages.Package pakkage : packages.getPackage()) {
-            log.debug("   - " + pakkage.getTitle());
-            packageNameList.add(new SelectItem(pakkage.getTitle()));
+            log.info("   - " + pakkage.getTitle());
+            packageList.add(new SelectItem(pakkage.getTitle()));
         }
-        return packageNameList;
+        assetList.clear();
     }
 
-    public SelectItem getSelectedPackage() {
+    public String getSelectedPackage() {
         return selectedPackage;
     }
 
-    public void setSelectedPackage(final SelectItem selectedPackage) {
-        System.out.println("New value for selected package: " + selectedPackage.getValue());
+    public void setSelectedPackage(final String selectedPackage) {
         this.selectedPackage = selectedPackage;
     }
 
     public void packageSelected(final ValueChangeEvent evt) {
-        System.out.println("Current value for the selected package = " + getSelectedPackage().getValue());
+        log.info("Value of new selected package: " + evt.getNewValue());
+        selectedPackage = (String) evt.getNewValue();
+        getGuvnorAssets();
     }
 
-    public List<SelectItem> getGuvnorAssets(final String packageName) {
-        log.debug("Retrieving assets for package " + packageName + " from Guvnor.");
+    private void getGuvnorAssets() {
+        log.info("Retrieving assets for package " + selectedPackage + " from Guvnor...");
 
         // Call Guvnor to retrieve the available assets.
-        final Assets assets = getFromGuvnor(MessageFormat.format(GUVNOR_API_ASSETS_PATH, packageName), Assets.class);
+        final Assets assets = getFromGuvnor(MessageFormat.format(GUVNOR_API_ASSETS_PATH, selectedPackage), Assets.class);
 
         // Format the output.
-        log.debug("Current assets for package " + packageName + " in Guvnor:");
-        final List<SelectItem> assetNameList = new ArrayList<SelectItem>();
+        assetList.clear();
+        log.info("Current assets for package " + selectedPackage + " in Guvnor:");
         for (final org.jboss.brms.test.guvnor.Assets.Asset asset : assets.getAsset()) {
-            final String assetName = asset.getRefLink().substring(asset.getRefLink().lastIndexOf("/"));
-            log.debug("   - " + assetName);
-            assetNameList.add(new SelectItem(assetName));
+            final String assetName = asset.getRefLink().substring(asset.getRefLink().lastIndexOf("/") + 1) + "." + asset.getMetadata().getFormat();
+            log.info("   - " + assetName);
+            assetList.add(assetName);
         }
-        return assetNameList;
+    }
+
+    public List<String> getAssets() {
+        return assetList;
     }
 
     private <T> T getFromGuvnor(final String uriString, final Class<T> clazz) {

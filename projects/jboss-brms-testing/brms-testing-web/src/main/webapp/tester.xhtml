@@ -5,14 +5,25 @@
     <ui:define name="content">
         <h:form>
             <rich:panel style="width:400px;">
-                <h:outputText value="Choose Guvnor package:" />
-                <rich:select id="guvnorPackage" value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.packageSelected}">
-                    <f:selectItems value="#{testerBean.guvnorPackages}" />
-                </rich:select>
-            </rich:panel>
-            <rich:panel style="width:400px;">
-                <h:outputText value="Chosen package:" />
-                <h:outputText value="#{testerBean.selectedPackage.value}" />
+                <h:outputText value="Choose Guvnor package: " />
+                <h:selectOneMenu value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.packageSelected}">
+                    <f:selectItems value="#{testerBean.packageList}" />
+                    <a4j:ajax event="valueChange" render="assetOverview" execute="@this" />
+                </h:selectOneMenu>
+                <rich:extendedDataTable id="assetOverview" value="#{testerBean.assets}" var="asset" noDataLabel="No assets available for package...">
+                    <rich:column width="300px">
+                        <f:facet name="header">
+                            <h:outputText value="Asset" />
+                        </f:facet>
+                        <h:outputText value="#{asset}" />
+                    </rich:column>
+                    <rich:column width="76px">
+                        <f:facet name="header">
+                            <h:outputText value="include?" />
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="true" style="text-align: center;"/>
+                    </rich:column>
+                </rich:extendedDataTable>
             </rich:panel>
         </h:form>
     </ui:define>
