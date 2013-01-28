@@ -24,6 +24,6 @@ public class ProcessBean implements Serializable {
     public void startProcessInstance(final String packageName, final String processId) {
         log.info("Calling ProcessService to start process instance.");
 
-        processService.startInstance(packageName, processId);
+        processService.runInstance(packageName, processId, null);
     }
 }

@@ -38,8 +38,15 @@
             <!-- JBoss BOMs. -->
             <dependency>
                 <groupId>org.jboss.bom</groupId>
+                <artifactId>jboss-javaee-6.0-with-hibernate</artifactId>
+                <version>1.0.2.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.bom</groupId>
                 <artifactId>jboss-javaee-6.0-with-richfaces</artifactId>
-                <version>1.0.3.Final</version>
+                <version>1.0.2.Final</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

@@ -3,6 +3,7 @@ package org.jboss.brms.test.service;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.ejb.Stateless;
@@ -15,6 +16,7 @@ import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
+import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.util.Resources.GuvnorConfig;
 
 @Stateless
@@ -35,8 +37,8 @@ public class ProcessService {
     @Inject
     private Logger log;
 
-    public void startInstance(final String packageName, final String processId) {
-        log.info("Starting process instance for process " + processId + " contained in package " + packageName);
+    public Metrics runInstance(final String packageName, final String processId, final Map<String, Object> parms) {
+        log.info("Running process instance for process " + processId + " contained in package " + packageName);
 
         // If found, use a knowledge builder with corresponding change set to create a knowledge base.
         final KnowledgeBase kbase = retrieveKnowledgeBaseFromGuvnor(packageName);
@@ -44,8 +46,12 @@ public class ProcessService {
         // Create and start the process instance from the knowledge base.
         // TODO: persistence?
         final StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-        ksession.startProcess(processId);
-        // TODO: Fire rules? Anything else?
+        final MetricEventListener eventListener = new MetricEventListener();
+        ksession.addEventListener(eventListener);
+        ksession.startProcess(processId, parms);
+        ksession.fireAllRules();
+
+        return eventListener.getMetrics();
     }
 
     /**
