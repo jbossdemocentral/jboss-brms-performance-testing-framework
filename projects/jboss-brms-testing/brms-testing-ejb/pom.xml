@@ -58,6 +58,20 @@
             <artifactId>hibernate-validator-annotation-processor</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxrs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-multipart-provider</artifactId>
+        </dependency>
 
         <!-- Common 'helper libs'. -->
         <dependency>
@@ -77,7 +91,7 @@
         <dependency>
             <groupId>org.jbpm</groupId>
             <artifactId>jbpm-test</artifactId>
-            <version>5.3.0.Final</version>
+            <version>5.2.5.Final</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
