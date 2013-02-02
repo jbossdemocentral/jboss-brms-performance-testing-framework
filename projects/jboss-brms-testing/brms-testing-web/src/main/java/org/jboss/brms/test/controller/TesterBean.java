@@ -1,10 +1,6 @@
 package org.jboss.brms.test.controller;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.io.StringReader;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,18 +10,11 @@ import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.xml.bind.JAXB;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.jboss.brms.test.guvnor.Assets;
 import org.jboss.brms.test.guvnor.Packages;
+import org.jboss.brms.test.service.GuvnorService;
 
 @Named
 @SessionScoped
@@ -33,16 +22,14 @@ public class TesterBean implements Serializable {
     /** Serial version ID. */
     private static final long serialVersionUID = 1L;
 
-    private static final String GUVNOR_API_HOST = "localhost";
-    private static final int GUVNOR_API_PORT = 8080;
-    private static final String GUVNOR_API_USER = "admin";
-    private static final String GUVNOR_API_PASSWORD = "admin";
-    private static final String GUVNOR_API_BASE_URL = "http://" + GUVNOR_API_HOST + ":" + GUVNOR_API_PORT + "/jboss-brms/rest";
-    private static final String GUVNOR_API_PACKAGES_PATH = GUVNOR_API_BASE_URL + "/packages";
+    private static final String GUVNOR_API_PACKAGES_PATH = "/packages";
     private static final String GUVNOR_API_ASSETS_PATH = GUVNOR_API_PACKAGES_PATH + "/{0}/assets";
 
     @Inject
     private transient Logger log;
+
+    @Inject
+    private GuvnorService guvnorService;
 
     private final List<SelectItem> packageList = new ArrayList<SelectItem>();
     private String selectedPackage = "";
@@ -59,7 +46,7 @@ public class TesterBean implements Serializable {
         log.info("Retrieving packages from Guvnor...");
 
         // Call Guvnor to retrieve the available packages.
-        final Packages packages = getFromGuvnor(GUVNOR_API_PACKAGES_PATH, Packages.class);
+        final Packages packages = guvnorService.getFromGuvnor(GUVNOR_API_PACKAGES_PATH, Packages.class);
 
         // Format the output.
         packageList.clear();
@@ -90,7 +77,7 @@ public class TesterBean implements Serializable {
         log.info("Retrieving assets for package " + selectedPackage + " from Guvnor...");
 
         // Call Guvnor to retrieve the available assets.
-        final Assets assets = getFromGuvnor(MessageFormat.format(GUVNOR_API_ASSETS_PATH, selectedPackage), Assets.class);
+        final Assets assets = guvnorService.getFromGuvnor(MessageFormat.format(GUVNOR_API_ASSETS_PATH, selectedPackage), Assets.class);
 
         // Format the output.
         assetList.clear();
@@ -104,35 +91,5 @@ public class TesterBean implements Serializable {
 
     public List<String> getAssets() {
         return assetList;
-    }
-
-    private <T> T getFromGuvnor(final String uriString, final Class<T> clazz) {
-        // Retrieve the info from Guvnor as XML.
-        String responseXml = null;
-        final DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getCredentialsProvider().setCredentials(new AuthScope(GUVNOR_API_HOST, GUVNOR_API_PORT),
-                new UsernamePasswordCredentials(GUVNOR_API_USER, GUVNOR_API_PASSWORD));
-        try {
-            final URI uri = new URI(uriString);
-            final HttpGet httpGet = new HttpGet(uri);
-            httpGet.addHeader("Accept", "application/xml");
-            final HttpResponse response = httpclient.execute(httpGet);
-            responseXml = EntityUtils.toString(response.getEntity());
-            EntityUtils.consume(response.getEntity());
-        } catch (final URISyntaxException uriEx) {
-            log.error("Bad URI for request.", uriEx);
-        } catch (final IOException ioEx) {
-            log.error("Problem accessing Guvnor API.", ioEx);
-        } finally {
-            // When the HttpClient instance is no longer needed, shut down the connection manager to ensure immediate deallocation of all system resources.
-            httpclient.getConnectionManager().shutdown();
-        }
-
-        // Unmarshal the response.
-        T result = null;
-        if (StringUtils.isNotBlank(responseXml)) {
-            result = JAXB.unmarshal(new StringReader(responseXml), clazz);
-        }
-        return result;
     }
 }

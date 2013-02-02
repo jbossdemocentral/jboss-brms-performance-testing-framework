@@ -19,6 +19,12 @@ import org.junit.Test;
  * This is a sample file to test a process.
  */
 public class ProcessTest extends JbpmJUnitTestCase {
+    private static final boolean USE_RESOURCES_FROM_GUVNOR = false;
+    private static final String GUVNOR_URL = "http://localhost:8080/jboss-brms";
+    private static final String GUVNOR_USER_NAME = "admin";
+    private static final String GUVNOR_PASSWORD = "admin";
+    private static final String[] GUVNOR_PACKAGES = { "org.jbpm.evaluation.customer" };
+
     private static final String LOCAL_PROCESS_NAME = "customereval.bpmn2";
     private static final String LOCAL_RULES_NAME = "financerules.drl";
 
@@ -30,11 +36,16 @@ public class ProcessTest extends JbpmJUnitTestCase {
         super.setUp();
 
         // Set up the knowledge session with the process and handlers.
-        final Map<String, ResourceType> resources = new HashMap<String, ResourceType>();
-        resources.put(LOCAL_PROCESS_NAME, ResourceType.BPMN2);
-        resources.put(LOCAL_RULES_NAME, ResourceType.DRL);
         KnowledgeBase kbase = null;
-        kbase = createKnowledgeBase(resources);
+        if (USE_RESOURCES_FROM_GUVNOR) {
+            kbase = createKnowledgeBaseGuvnor(false, GUVNOR_URL, GUVNOR_USER_NAME, GUVNOR_PASSWORD, GUVNOR_PACKAGES);
+        } else {
+            // Use the local files.
+            final Map<String, ResourceType> resources = new HashMap<String, ResourceType>();
+            resources.put(LOCAL_PROCESS_NAME, ResourceType.BPMN2);
+            resources.put(LOCAL_RULES_NAME, ResourceType.DRL);
+            kbase = createKnowledgeBase(resources);
+        }
         ksession = createKnowledgeSession(kbase);
     }
 
@@ -66,11 +77,11 @@ public class ProcessTest extends JbpmJUnitTestCase {
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
 
         // Print metrics.
-        System.out.println(eventListener.getMetrics());
+        System.out.println(eventListener.getMetrics().print());
         for (final MeasuredProcess mp : eventListener.getMetrics().getProcesses()) {
-            System.out.println(mp);
+            System.out.println(mp.print());
             for (final MeasuredProcessInstance mpi : mp.getInstances()) {
-                System.out.println(mpi);
+                System.out.println(mpi.print());
             }
         }
     }

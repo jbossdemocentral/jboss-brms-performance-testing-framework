@@ -1,5 +1,6 @@
 package org.jboss.brms.test.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -114,6 +115,23 @@ public class Metrics extends PersistentObject {
             timeToComplete = endingTime.getTime() - startingTime.getTime();
         }
         return timeToComplete;
+    }
+
+    public String print() {
+        final StringBuilder sb = new StringBuilder().append("\nMetrics:\n * Number of machines: ").append(numberOfMachines)
+                .append("\n * Was load balancing used: ").append(loadBalancingUsed).append("\n * Were processes started in parallel: ")
+                .append(processesStartedInParallel).append("\n * Were processes run in an individual knowledge session: ")
+                .append(processesRunInIndividualKnowledgeSession);
+        final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+        if (endingTime != null) {
+            sb.append("\n\n * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+                    .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
+        } else if (startingTime != null) {
+            sb.append("\n\n * Test started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+        } else {
+            sb.append("\n\n * Test not started yet.");
+        }
+        return sb.toString();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.jboss.brms.test.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -90,6 +91,20 @@ public class MeasuredProcessInstance extends PersistentObject {
 
     public void increaseNumberOfNodesVisited() {
         ++numberOfNodesVisited;
+    }
+
+    public String print() {
+        final StringBuilder sb = new StringBuilder().append("\nMeasuredProcessInstance:\n * Process instance ID: ").append(processInstanceId);
+        final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+        if (endingTime != null) {
+            sb.append("\n\n * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+                    .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
+        } else if (startingTime != null) {
+            sb.append("\n\n * Instance started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+        } else {
+            sb.append("\n\n * Instance not started yet.");
+        }
+        return sb.toString();
     }
 
     @Override

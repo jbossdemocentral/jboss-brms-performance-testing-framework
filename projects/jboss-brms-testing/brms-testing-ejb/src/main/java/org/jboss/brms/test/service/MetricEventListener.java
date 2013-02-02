@@ -16,6 +16,12 @@ public class MetricEventListener extends DefaultProcessEventListener {
 
     MetricEventListener() {
         metrics = new Metrics();
+
+        // Hard-code for now:
+        metrics.setNumberOfMachines(Integer.valueOf(1));
+        metrics.setLoadBalancingUsed(Boolean.FALSE);
+        metrics.setProcessesStartedInParallel(Boolean.FALSE);
+        metrics.setProcessesRunInIndividualKnowledgeSession(Boolean.FALSE);
     }
 
     public Metrics getMetrics() {

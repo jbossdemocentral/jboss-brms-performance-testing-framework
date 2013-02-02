@@ -63,6 +63,10 @@ public class MeasuredProcess extends PersistentObject {
         return getInstances().add(instance);
     }
 
+    public String print() {
+        return new StringBuilder().append("\nMeasuredProcess:\n * Process ID: ").append(processId).toString();
+    }
+
     @Override
     public int hashCode() {
         int result = HASH_SEED;
