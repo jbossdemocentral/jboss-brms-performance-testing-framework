@@ -3,7 +3,6 @@ package org.jboss.brms.test.util;
 import java.io.StringReader;
 import java.util.Properties;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
@@ -18,7 +17,6 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
-import org.jboss.brms.test.util.Resources.GuvnorConfig;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
@@ -34,9 +32,11 @@ public final class GuvnorRestUtil {
 
     private static MediaType EXPECTED_MEDIA_TYPE = DEFAULT_MEDIA_TYPE;
 
-    @Inject
-    @GuvnorConfig
-    private Properties guvnorConfig;
+    private final Properties guvnorConfig;
+
+    public GuvnorRestUtil(final Properties guvnorConfig) {
+        this.guvnorConfig = guvnorConfig;
+    }
 
     public static MediaType getExpectedMediaType() {
         return EXPECTED_MEDIA_TYPE;

@@ -10,11 +10,14 @@
     <sub-deployment name="brms-testing-ejb-1.0-SNAPSHOT.jar">
         <dependencies>
             <module name="org.apache.commons.lang" />
+            <module name="org.jboss.resteasy.resteasy-jaxrs" />
+            <module name="org.apache.httpcomponents" />
         </dependencies>
     </sub-deployment>
     <sub-deployment name="brms-testing-web-1.0-SNAPSHOT.war">
         <dependencies>
             <module name="org.apache.commons.lang" />
+            <module name="org.jboss.resteasy.resteasy-jaxrs" />
         </dependencies>
     </sub-deployment>
 </jboss-deployment-structure>

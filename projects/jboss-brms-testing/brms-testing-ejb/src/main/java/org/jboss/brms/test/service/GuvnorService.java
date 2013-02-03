@@ -65,6 +65,6 @@ public class GuvnorService {
      */
     public <T> T getFromGuvnor(final String path, final Class<T> clazz) {
         log.info("Retrieving " + clazz.getSimpleName() + " from Guvnor on path [" + path + "].");
-        return new GuvnorRestUtil().getFromGuvnor(path, clazz);
+        return new GuvnorRestUtil(guvnorConfig).getFromGuvnor(path, clazz);
     }
 }
