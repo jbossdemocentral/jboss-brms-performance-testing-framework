@@ -46,6 +46,8 @@
                             <contextRoot>/brms-testing</contextRoot>
                         </webModule>
                     </modules>
+                    <!-- Use the .ear extension to create a readily copyable exploded ear directory. -->
+                    <workDirectory>${project.build.finalName}.ear</workDirectory>
                 </configuration>
             </plugin>
             <!-- The JBoss AS plugin deploys your ear to a local JBoss AS container -->
