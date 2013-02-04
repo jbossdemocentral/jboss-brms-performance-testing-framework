@@ -23,13 +23,21 @@
             <groupId>org.drools</groupId>
             <artifactId>drools-core</artifactId>
             <version>${brms-version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.drools</groupId>
             <artifactId>drools-compiler</artifactId>
             <version>${brms-version}</version>
-            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jbpm</groupId>
+            <artifactId>jbpm-bpmn2</artifactId>
+            <version>${brms-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jbpm</groupId>
+            <artifactId>jbpm-flow</artifactId>
+            <version>${brms-version}</version>
         </dependency>
 
         <!-- Using provided scope as APIs are included in EAP 6. -->

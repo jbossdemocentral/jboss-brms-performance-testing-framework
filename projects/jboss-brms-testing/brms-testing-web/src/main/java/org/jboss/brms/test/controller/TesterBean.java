@@ -11,16 +11,23 @@ import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jboss.brms.test.guvnor.Assets;
 import org.jboss.brms.test.guvnor.Packages;
+import org.jboss.brms.test.model.MeasuredProcess;
+import org.jboss.brms.test.model.MeasuredProcessInstance;
+import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.service.GuvnorService;
+import org.jboss.brms.test.service.ProcessService;
 
 @Named
 @SessionScoped
 public class TesterBean implements Serializable {
     /** Serial version ID. */
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOGGER = Logger.getLogger(TesterBean.class);
 
     private static final String GUVNOR_API_PACKAGES_PATH = "/packages";
     private static final String GUVNOR_API_ASSETS_PATH = GUVNOR_API_PACKAGES_PATH + "/{0}/assets";
@@ -30,6 +37,9 @@ public class TesterBean implements Serializable {
 
     @Inject
     private GuvnorService guvnorService;
+
+    @Inject
+    private ProcessService processService;
 
     private final List<SelectItem> packageList = new ArrayList<SelectItem>();
     private String selectedPackage = "";
@@ -74,6 +84,11 @@ public class TesterBean implements Serializable {
     }
 
     private void getGuvnorAssets() {
+        if (StringUtils.isBlank(selectedPackage)) {
+            LOGGER.debug("No package selected, so no assets retrieved.");
+            return;
+        }
+
         log.info("Retrieving assets for package " + selectedPackage + " from Guvnor...");
 
         // Call Guvnor to retrieve the available assets.
@@ -81,15 +96,32 @@ public class TesterBean implements Serializable {
 
         // Format the output.
         assetList.clear();
-        log.info("Current assets for package " + selectedPackage + " in Guvnor:");
-        for (final org.jboss.brms.test.guvnor.Assets.Asset asset : assets.getAsset()) {
-            final String assetName = asset.getRefLink().substring(asset.getRefLink().lastIndexOf("/") + 1) + "." + asset.getMetadata().getFormat();
-            log.info("   - " + assetName);
-            assetList.add(assetName);
+        if ((assets == null) || (assets.getAsset() == null) || assets.getAsset().isEmpty()) {
+            log.info("Currently no assets for package " + selectedPackage + " in Guvnor!");
+        } else {
+            log.info("Current assets for package " + selectedPackage + " in Guvnor:");
+            for (final org.jboss.brms.test.guvnor.Assets.Asset asset : assets.getAsset()) {
+                final String assetName = asset.getRefLink().substring(asset.getRefLink().lastIndexOf("/") + 1) + "." + asset.getMetadata().getFormat();
+                log.info("   - " + assetName);
+                assetList.add(assetName);
+            }
         }
     }
 
     public List<String> getAssets() {
         return assetList;
+    }
+
+    public void startProcessInstance() {
+        final Metrics metrics = processService.runInstance("org.jbpm.evaluation.customer", "org.jbpm.customer-evaluation", null);
+
+        // Temp output:
+        LOGGER.info(metrics.print());
+        for (final MeasuredProcess process : metrics.getProcesses()) {
+            LOGGER.info(process.print());
+            for (final MeasuredProcessInstance processInstance : process.getInstances()) {
+                LOGGER.info(processInstance.print());
+            }
+        }
     }
 }

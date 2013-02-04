@@ -21,10 +21,10 @@ import org.jboss.brms.test.util.Resources.GuvnorConfig;
 
 @Stateless
 public class ProcessService {
-    private static final String CHANGESET_PATTERN = "<change-set xmlns='http://drools.org/drools-5.0/change-set' xmlns:xs='http://www.w3.org/2001/XMLSchema-instance'"
-            + " xs:schemaLocation='http://drools.org/drools-5.0/change-set http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk/drools-api/src/main/resources/change-set-1.0.0.xsd'>"
+    private static final String CHANGESET_PATTERN = "<change-set xmlns=\"http://drools.org/drools-5.0/change-set\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\""
+            + " xs:schemaLocation=\"http://drools.org/drools-5.0/change-set http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk/drools-api/src/main/resources/change-set-1.0.0.xsd\">"
             + "<add>{0}</add></change-set>";
-    private static final String RESOURCE_PATTERN = "<resource source='{0}/rest/packages/{1}/binary' type='PKG' basicAuthentication=\"enabled\" username=\"{2}\" password=\"{3}\" />";
+    private static final String RESOURCE_PATTERN = "<resource source=\"{0}/rest/packages/{1}/binary\" type=\"PKG\" basicAuthentication=\"enabled\" username=\"{2}\" password=\"{3}\" />";
 
     private static final String GUVNOR_CONFIG_URL = "guvnor.url";
     private static final String GUVNOR_CONFIG_USER_NAME = "guvnor.user";
@@ -44,7 +44,6 @@ public class ProcessService {
         final KnowledgeBase kbase = retrieveKnowledgeBaseFromGuvnor(packageName);
 
         // Create and start the process instance from the knowledge base.
-        // TODO: persistence?
         final StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
         final MetricEventListener eventListener = new MetricEventListener();
         ksession.addEventListener(eventListener);
