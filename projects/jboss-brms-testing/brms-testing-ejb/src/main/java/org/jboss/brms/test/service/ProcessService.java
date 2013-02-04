@@ -2,6 +2,7 @@ package org.jboss.brms.test.service;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -47,8 +48,10 @@ public class ProcessService {
         final StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
         final MetricEventListener eventListener = new MetricEventListener();
         ksession.addEventListener(eventListener);
+        eventListener.getMetrics().setStartingTime(new Date());
         ksession.startProcess(processId, parms);
         ksession.fireAllRules();
+        eventListener.getMetrics().setEndingTime(new Date());
 
         return eventListener.getMetrics();
     }
