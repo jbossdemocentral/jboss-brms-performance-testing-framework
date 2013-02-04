@@ -32,6 +32,7 @@ installPom org.drools drools-multiproject
 installPom org.drools droolsjbpm-tools
 installPom org.drools droolsjbpm-integration
 installPom org.drools guvnor
+installPom org.jbpm jbpm
 
 echo Installing Drools binaries...
 echo
