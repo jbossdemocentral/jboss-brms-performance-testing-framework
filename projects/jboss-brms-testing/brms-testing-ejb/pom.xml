@@ -95,7 +95,7 @@
         <dependency>
             <groupId>org.jbpm</groupId>
             <artifactId>jbpm-test</artifactId>
-            <version>5.2.5.Final</version>
+            <version>${brms-version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
