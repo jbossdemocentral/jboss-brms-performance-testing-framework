@@ -14,7 +14,7 @@ import org.jboss.brms.test.model.Metrics;
 public class MetricEventListener extends DefaultProcessEventListener {
     private final Metrics metrics;
 
-    MetricEventListener() {
+    public MetricEventListener() {
         metrics = new Metrics();
 
         // Hard-code for now:
