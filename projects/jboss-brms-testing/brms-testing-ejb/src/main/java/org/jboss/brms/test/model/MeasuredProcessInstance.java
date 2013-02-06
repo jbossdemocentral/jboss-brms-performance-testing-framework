@@ -2,6 +2,8 @@ package org.jboss.brms.test.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,6 +35,9 @@ public class MeasuredProcessInstance extends PersistentObject {
     private Date endingTime;
 
     private Integer numberOfNodesVisited;
+
+    /** The rules used for this instance. */
+    private Set<MeasuredRule> rules;
 
     /** Default constructor, required by JPA. */
     protected MeasuredProcessInstance() {
@@ -82,6 +87,9 @@ public class MeasuredProcessInstance extends PersistentObject {
     }
 
     public Integer getNumberOfNodesVisited() {
+        if (numberOfNodesVisited == null) {
+            numberOfNodesVisited = Integer.valueOf(0);
+        }
         return numberOfNodesVisited;
     }
 
@@ -90,19 +98,35 @@ public class MeasuredProcessInstance extends PersistentObject {
     }
 
     public void increaseNumberOfNodesVisited() {
-        ++numberOfNodesVisited;
+        setNumberOfNodesVisited(getNumberOfNodesVisited() + 1);
+    }
+
+    public Set<MeasuredRule> getRules() {
+        if (rules == null) {
+            rules = new HashSet<MeasuredRule>();
+        }
+        return rules;
+    }
+
+    void setRules(final Set<MeasuredRule> rules) {
+        this.rules = rules;
+    }
+
+    public boolean addRule(final MeasuredRule rule) {
+        return getRules().add(rule);
     }
 
     public String print() {
-        final StringBuilder sb = new StringBuilder().append("\nMeasuredProcessInstance:\n * Process instance ID: ").append(processInstanceId);
+        final StringBuilder sb = new StringBuilder().append("\n\n   MeasuredProcessInstance:\n    * Process instance ID: ").append(processInstanceId);
+        sb.append("\n    * Number of nodes visited = ").append(numberOfNodesVisited);
         final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         if (endingTime != null) {
-            sb.append("\n\n * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+            sb.append("\n    * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
                     .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
         } else if (startingTime != null) {
-            sb.append("\n\n * Instance started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+            sb.append("\n    * Instance started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
         } else {
-            sb.append("\n\n * Instance not started yet.");
+            sb.append("\n    * Instance not started yet.");
         }
         return sb.toString();
     }

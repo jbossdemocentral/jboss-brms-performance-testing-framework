@@ -31,8 +31,8 @@ public class Metrics extends PersistentObject {
     /** Are the process instances each started in their own stateful knowledge session? */
     private Boolean processesRunInIndividualKnowledgeSession;
 
-    /** The processes used in the test run. */
-    private Set<MeasuredProcess> processes;
+    /** The packages used in the test run. */
+    private Set<MeasuredPackage> packages;
 
     /** The moment the test run began. */
     @Temporal(TemporalType.TIMESTAMP)
@@ -78,19 +78,19 @@ public class Metrics extends PersistentObject {
         this.processesRunInIndividualKnowledgeSession = processesRunInIndividualKnowledgeSession;
     }
 
-    public Set<MeasuredProcess> getProcesses() {
-        if (processes == null) {
-            processes = new HashSet<MeasuredProcess>();
+    public Set<MeasuredPackage> getPackages() {
+        if (packages == null) {
+            packages = new HashSet<MeasuredPackage>();
         }
-        return processes;
+        return packages;
     }
 
-    void setProcesses(final Set<MeasuredProcess> processes) {
-        this.processes = processes;
+    void setPackages(final Set<MeasuredPackage> packages) {
+        this.packages = packages;
     }
 
-    public boolean addProcess(final MeasuredProcess process) {
-        return getProcesses().add(process);
+    public boolean addPackage(final MeasuredPackage pakkage) {
+        return getPackages().add(pakkage);
     }
 
     public Date getStartingTime() {
@@ -134,6 +134,23 @@ public class Metrics extends PersistentObject {
         return sb.toString();
     }
 
+    public String printAll() {
+        final StringBuilder sb = new StringBuilder(print());
+        for (final MeasuredPackage mpak : getPackages()) {
+            sb.append(mpak.print());
+            for (final MeasuredProcess mp : mpak.getProcesses()) {
+                sb.append(mp.print());
+                for (final MeasuredProcessInstance mpi : mp.getInstances()) {
+                    sb.append(mpi.print());
+                    for (final MeasuredRule mr : mpi.getRules()) {
+                        sb.append(mr.print());
+                    }
+                }
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     public int hashCode() {
         return super.hashCode();
@@ -159,5 +176,4 @@ public class Metrics extends PersistentObject {
                 .append(processesRunInIndividualKnowledgeSession).append(", startingTime=").append(startingTime).append(", endingTime=").append(endingTime)
                 .append("]").toString();
     }
-
 }

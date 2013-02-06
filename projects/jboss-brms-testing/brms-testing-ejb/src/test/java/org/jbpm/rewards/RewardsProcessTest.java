@@ -2,7 +2,6 @@ package org.jbpm.rewards;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,9 +11,7 @@ import org.drools.KnowledgeBase;
 import org.drools.builder.ResourceType;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.process.ProcessInstance;
-import org.jboss.brms.test.model.MeasuredProcess;
-import org.jboss.brms.test.model.MeasuredProcessInstance;
-import org.jboss.brms.test.service.MetricEventListener;
+import org.jboss.brms.test.service.metrics.MetricsCollector;
 import org.jbpm.process.instance.impl.demo.SystemOutWorkItemHandler;
 import org.jbpm.process.workitem.wsht.SyncWSHumanTaskHandler;
 import org.jbpm.task.AccessType;
@@ -84,12 +81,11 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
 
     @Test
     public void rewardApprovedTest() {
-        // Add listener for collecting metrics.
-        final MetricEventListener eventListener = new MetricEventListener();
-        ksession.addEventListener(eventListener);
+        // Add collector for the metrics.
+        final MetricsCollector collector = new MetricsCollector(ksession);
 
         // Start process instance.
-        eventListener.getMetrics().setStartingTime(new Date());
+        collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.approval.rewards.extended");
 
         // Retrieve and execute task with approval.
@@ -106,31 +102,24 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
         content.setContent(SerializationUtils.serialize((Serializable) taskParams));
         taskService.complete(task.getId(), "mary", content);
 
-        // Capture end of process instance.
-        eventListener.getMetrics().setEndingTime(new Date());
+        // Capture end of test run.
+        collector.endTest();
 
         // Test for completion and in correct end node.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
         assertNodeTriggered(processInstance.getId(), "End Approved");
 
         // Print metrics.
-        System.out.println(eventListener.getMetrics().print());
-        for (final MeasuredProcess mp : eventListener.getMetrics().getProcesses()) {
-            System.out.println(mp.print());
-            for (final MeasuredProcessInstance mpi : mp.getInstances()) {
-                System.out.println(mpi.print());
-            }
-        }
+        System.out.println(collector.getMetrics().printAll());
     }
 
     @Test
     public void rewardRejectedTest() {
-        // Add listener for collecting metrics.
-        final MetricEventListener eventListener = new MetricEventListener();
-        ksession.addEventListener(eventListener);
+        // Add collector for the metrics.
+        final MetricsCollector collector = new MetricsCollector(ksession);
 
         // Start process instance.
-        eventListener.getMetrics().setStartingTime(new Date());
+        collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.approval.rewards.extended");
 
         // Retrieve and execute task with rejection.
@@ -147,20 +136,14 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
         content.setContent(SerializationUtils.serialize((Serializable) taskParams));
         taskService.complete(task.getId(), "john", content);
 
-        // Capture end of process instance.
-        eventListener.getMetrics().setEndingTime(new Date());
+        // Capture end of test run.
+        collector.endTest();
 
         // Test for completion and in correct end node.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
         assertNodeTriggered(processInstance.getId(), "End Rejected");
 
         // Print metrics.
-        System.out.println(eventListener.getMetrics().print());
-        for (final MeasuredProcess mp : eventListener.getMetrics().getProcesses()) {
-            System.out.println(mp.print());
-            for (final MeasuredProcessInstance mpi : mp.getInstances()) {
-                System.out.println(mpi.print());
-            }
-        }
+        System.out.println(collector.getMetrics().printAll());
     }
 }

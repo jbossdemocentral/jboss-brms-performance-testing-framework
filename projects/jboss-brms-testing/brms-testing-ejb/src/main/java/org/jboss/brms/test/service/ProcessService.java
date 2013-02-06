@@ -2,7 +2,6 @@ package org.jboss.brms.test.service;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -18,6 +17,7 @@ import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.jboss.brms.test.model.Metrics;
+import org.jboss.brms.test.service.metrics.MetricsCollector;
 import org.jboss.brms.test.util.Resources.GuvnorConfig;
 
 @Stateless
@@ -46,14 +46,13 @@ public class ProcessService {
 
         // Create and start the process instance from the knowledge base.
         final StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-        final MetricEventListener eventListener = new MetricEventListener();
-        ksession.addEventListener(eventListener);
-        eventListener.getMetrics().setStartingTime(new Date());
+        final MetricsCollector collector = new MetricsCollector(ksession);
+        collector.startTest();
         ksession.startProcess(processId, parms);
         ksession.fireAllRules();
-        eventListener.getMetrics().setEndingTime(new Date());
+        collector.endTest();
 
-        return eventListener.getMetrics();
+        return collector.getMetrics();
     }
 
     /**

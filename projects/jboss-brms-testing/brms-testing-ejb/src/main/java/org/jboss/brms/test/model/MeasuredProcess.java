@@ -64,7 +64,8 @@ public class MeasuredProcess extends PersistentObject {
     }
 
     public String print() {
-        return new StringBuilder().append("\nMeasuredProcess:\n * Process ID: ").append(processId).toString();
+        return new StringBuilder().append("\n\n  MeasuredProcess:\n   * Process ID: ").append(processId).append("\n   * Number of times instantiated: ")
+                .append(getInstances().size()).toString();
     }
 
     @Override

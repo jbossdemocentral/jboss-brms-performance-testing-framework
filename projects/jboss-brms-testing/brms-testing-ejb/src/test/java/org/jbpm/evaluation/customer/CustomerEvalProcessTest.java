@@ -1,6 +1,5 @@
 package org.jbpm.evaluation.customer;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,9 +7,7 @@ import org.drools.KnowledgeBase;
 import org.drools.builder.ResourceType;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.process.ProcessInstance;
-import org.jboss.brms.test.model.MeasuredProcess;
-import org.jboss.brms.test.model.MeasuredProcessInstance;
-import org.jboss.brms.test.service.MetricEventListener;
+import org.jboss.brms.test.service.metrics.MetricsCollector;
 import org.jbpm.test.JbpmJUnitTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -60,28 +57,51 @@ public class CustomerEvalProcessTest extends JbpmJUnitTestCase {
 
     @Test
     public void emptyRequest() {
-        // Add listener for collecting metrics.
-        final MetricEventListener eventListener = new MetricEventListener();
-        ksession.addEventListener(eventListener);
+        // Add collector for the metrics.
+        final MetricsCollector collector = new MetricsCollector(ksession);
 
         // Start process instance.
-        eventListener.getMetrics().setStartingTime(new Date());
+        collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.customer-evaluation");
         ksession.fireAllRules();
 
-        // Capture end of process instance.
-        eventListener.getMetrics().setEndingTime(new Date());
+        // Capture end of test run.
+        collector.endTest();
 
         // Check whether the process instance has completed successfully.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
 
         // Print metrics.
-        System.out.println(eventListener.getMetrics().print());
-        for (final MeasuredProcess mp : eventListener.getMetrics().getProcesses()) {
-            System.out.println(mp.print());
-            for (final MeasuredProcessInstance mpi : mp.getInstances()) {
-                System.out.println(mpi.print());
-            }
-        }
+        System.out.println(collector.getMetrics().printAll());
+    }
+
+    @Test
+    public void richAdultRequest() {
+        // Prepare for an adult, rich customer.
+        final Map<String, Object> params = new HashMap<String, Object>();
+        final Person person = new Person("pid", "John Doe");
+        person.setAge(21);
+        params.put("person", person);
+        final Request request = new Request("rid");
+        request.setPersonId(person.getId());
+        request.setAmount(5000);
+        params.put("request", request);
+
+        // Add collector for the metrics.
+        final MetricsCollector collector = new MetricsCollector(ksession);
+
+        // Start process instance.
+        collector.startTest();
+        final ProcessInstance processInstance = ksession.startProcess("org.jbpm.customer-evaluation", params);
+        ksession.fireAllRules();
+
+        // Capture end of test run.
+        collector.endTest();
+
+        // Check whether the process instance has completed successfully.
+        assertProcessInstanceCompleted(processInstance.getId(), ksession);
+
+        // Print metrics.
+        System.out.println(collector.getMetrics().printAll());
     }
 }

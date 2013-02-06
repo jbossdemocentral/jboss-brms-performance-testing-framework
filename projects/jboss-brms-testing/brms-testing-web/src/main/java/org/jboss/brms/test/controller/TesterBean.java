@@ -15,8 +15,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jboss.brms.test.guvnor.Assets;
 import org.jboss.brms.test.guvnor.Packages;
-import org.jboss.brms.test.model.MeasuredProcess;
-import org.jboss.brms.test.model.MeasuredProcessInstance;
 import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.service.GuvnorService;
 import org.jboss.brms.test.service.ProcessService;
@@ -116,12 +114,6 @@ public class TesterBean implements Serializable {
         final Metrics metrics = processService.runInstance("org.jbpm.evaluation.customer", "org.jbpm.customer-evaluation", null);
 
         // Temp output:
-        LOGGER.info(metrics.print());
-        for (final MeasuredProcess process : metrics.getProcesses()) {
-            LOGGER.info(process.print());
-            for (final MeasuredProcessInstance processInstance : process.getInstances()) {
-                LOGGER.info(processInstance.print());
-            }
-        }
+        LOGGER.info(metrics.printAll());
     }
 }
