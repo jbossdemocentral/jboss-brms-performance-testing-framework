@@ -2,10 +2,12 @@ package org.jboss.brms.test.service.metrics;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.drools.event.process.DefaultProcessEventListener;
 import org.drools.event.process.ProcessCompletedEvent;
 import org.drools.event.process.ProcessEvent;
 import org.drools.event.process.ProcessNodeLeftEvent;
+import org.drools.event.process.ProcessNodeTriggeredEvent;
 import org.drools.event.process.ProcessStartedEvent;
 import org.jboss.brms.test.model.MeasuredPackage;
 import org.jboss.brms.test.model.MeasuredProcess;
@@ -16,6 +18,8 @@ import org.jbpm.workflow.core.node.RuleSetNode;
 import org.jbpm.workflow.instance.node.RuleSetNodeInstance;
 
 public class ProcessEventListener extends DefaultProcessEventListener {
+    private static final Logger LOGGER = Logger.getLogger(ProcessEventListener.class);
+
     private final Metrics metrics;
 
     public ProcessEventListener(final Metrics metrics) {
@@ -41,6 +45,19 @@ public class ProcessEventListener extends DefaultProcessEventListener {
     }
 
     @Override
+    public void afterNodeTriggered(final ProcessNodeTriggeredEvent event) {
+        // Get the instance for this event.
+        final MeasuredProcessInstance mpi = findProcessInstance(event);
+
+        if (event.getNodeInstance() instanceof RuleSetNodeInstance) {
+            final RuleSetNode rsn = (RuleSetNode) ((RuleSetNodeInstance) event.getNodeInstance()).getNode();
+            final MeasuredRule mr = new MeasuredRule(rsn.getRuleFlowGroup(), rsn.getUniqueId());
+            mpi.addRule(mr);
+            mr.setStartingTime(new Date());
+        }
+    }
+
+    @Override
     public void beforeNodeLeft(final ProcessNodeLeftEvent event) {
         // Set the event in the corresponding process instance.
         final MeasuredProcessInstance mpi = findProcessInstance(event);
@@ -49,13 +66,12 @@ public class ProcessEventListener extends DefaultProcessEventListener {
         // Store the rule invocations under the process instance.
         if (event.getNodeInstance() instanceof RuleSetNodeInstance) {
             final RuleSetNode rsn = (RuleSetNode) ((RuleSetNodeInstance) event.getNodeInstance()).getNode();
-            final String rfg = rsn.getRuleFlowGroup();
-            MeasuredRule mr = findRule(mpi, rfg);
-            if (mr == null) {
-                mr = new MeasuredRule(rfg);
-                mpi.addRule(mr);
+            final MeasuredRule mr = findRule(mpi, rsn.getRuleFlowGroup(), rsn.getUniqueId());
+            if (mr != null) {
+                mr.setEndingTime(new Date());
+            } else {
+                LOGGER.error("Unable to find MeasuredRule after activation: should have been added upon entry.");
             }
-            mr.increaseNumberOfTimesActivated();
         }
     }
 
@@ -127,10 +143,10 @@ public class ProcessEventListener extends DefaultProcessEventListener {
         return instance;
     }
 
-    private MeasuredRule findRule(final MeasuredProcessInstance instance, final String ruleFlowGroup) {
+    private MeasuredRule findRule(final MeasuredProcessInstance instance, final String ruleFlowGroup, final String nodeId) {
         MeasuredRule rule = null;
         for (final MeasuredRule mr : instance.getRules()) {
-            if (mr.getRuleFlowGroup().equals(ruleFlowGroup)) {
+            if (mr.getRuleFlowGroup().equals(ruleFlowGroup) && mr.getNodeId().equals(nodeId)) {
                 rule = mr;
                 break;
             }
