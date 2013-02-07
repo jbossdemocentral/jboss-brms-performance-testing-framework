@@ -57,6 +57,7 @@ public abstract class PersistentObject implements Serializable {
 
     /** Default constructor, required by JPA. */
     protected PersistentObject() {
+        uuid = UUID.randomUUID();
     }
 
     public Long getId() {
@@ -97,9 +98,8 @@ public abstract class PersistentObject implements Serializable {
         return uuid;
     }
 
-    @PrePersist
-    void setUuid() {
-        uuid = UUID.randomUUID();
+    void setUuid(final UUID uuid) {
+        this.uuid = uuid;
     }
 
     @Override
