@@ -39,6 +39,9 @@ public class MeasuredProcessInstance extends PersistentObject {
     /** The rules used for this instance. */
     private Set<MeasuredRule> rules;
 
+    /** The Human Tasks used for this instance. */
+    private Set<MeasuredHumanTask> humanTasks;
+
     /** Default constructor, required by JPA. */
     protected MeasuredProcessInstance() {
     }
@@ -114,6 +117,21 @@ public class MeasuredProcessInstance extends PersistentObject {
 
     public boolean addRule(final MeasuredRule rule) {
         return getRules().add(rule);
+    }
+
+    public Set<MeasuredHumanTask> getHumanTasks() {
+        if (humanTasks == null) {
+            humanTasks = new HashSet<MeasuredHumanTask>();
+        }
+        return humanTasks;
+    }
+
+    void setHumanTasks(final Set<MeasuredHumanTask> humanTasks) {
+        this.humanTasks = humanTasks;
+    }
+
+    public boolean addHumanTask(final MeasuredHumanTask humanTask) {
+        return getHumanTasks().add(humanTask);
     }
 
     public String print() {

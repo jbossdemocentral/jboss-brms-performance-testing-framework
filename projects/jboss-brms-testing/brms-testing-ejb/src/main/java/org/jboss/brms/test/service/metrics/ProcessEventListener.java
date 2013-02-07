@@ -9,12 +9,15 @@ import org.drools.event.process.ProcessEvent;
 import org.drools.event.process.ProcessNodeLeftEvent;
 import org.drools.event.process.ProcessNodeTriggeredEvent;
 import org.drools.event.process.ProcessStartedEvent;
+import org.jboss.brms.test.model.MeasuredHumanTask;
 import org.jboss.brms.test.model.MeasuredPackage;
 import org.jboss.brms.test.model.MeasuredProcess;
 import org.jboss.brms.test.model.MeasuredProcessInstance;
 import org.jboss.brms.test.model.MeasuredRule;
 import org.jboss.brms.test.model.Metrics;
+import org.jbpm.workflow.core.node.HumanTaskNode;
 import org.jbpm.workflow.core.node.RuleSetNode;
+import org.jbpm.workflow.instance.node.HumanTaskNodeInstance;
 import org.jbpm.workflow.instance.node.RuleSetNodeInstance;
 
 public class ProcessEventListener extends DefaultProcessEventListener {
@@ -54,6 +57,12 @@ public class ProcessEventListener extends DefaultProcessEventListener {
             final MeasuredRule mr = new MeasuredRule(rsn.getRuleFlowGroup(), rsn.getUniqueId());
             mpi.addRule(mr);
             mr.setStartingTime(new Date());
+        } else if (event.getNodeInstance() instanceof HumanTaskNodeInstance) {
+            final HumanTaskNode htn = (HumanTaskNode) ((HumanTaskNodeInstance) event.getNodeInstance()).getNode();
+            final MeasuredHumanTask mht = new MeasuredHumanTask((String) htn.getWork().getParameter("TaskName"),
+                    (String) htn.getWork().getParameter("GroupId"), htn.getUniqueId());
+            mpi.addHumanTask(mht);
+            mht.setStartingTime(new Date());
         }
     }
 
@@ -71,6 +80,14 @@ public class ProcessEventListener extends DefaultProcessEventListener {
                 mr.setEndingTime(new Date());
             } else {
                 LOGGER.error("Unable to find MeasuredRule after activation: should have been added upon entry.");
+            }
+        } else if (event.getNodeInstance() instanceof HumanTaskNodeInstance) {
+            final HumanTaskNode htn = (HumanTaskNode) ((HumanTaskNodeInstance) event.getNodeInstance()).getNode();
+            final MeasuredHumanTask mht = findHumanTask(mpi, (String) htn.getWork().getParameter("TaskName"), htn.getUniqueId());
+            if (mht != null) {
+                mht.setEndingTime(new Date());
+            } else {
+                LOGGER.error("Unable to find MeasuredHumanTask after activation: should have been added upon entry.");
             }
         }
     }
@@ -152,5 +169,16 @@ public class ProcessEventListener extends DefaultProcessEventListener {
             }
         }
         return rule;
+    }
+
+    private MeasuredHumanTask findHumanTask(final MeasuredProcessInstance instance, final String taskName, final String nodeId) {
+        MeasuredHumanTask humanTask = null;
+        for (final MeasuredHumanTask mht : instance.getHumanTasks()) {
+            if (mht.getTaskName().equals(taskName) && mht.getNodeId().equals(nodeId)) {
+                humanTask = mht;
+                break;
+            }
+        }
+        return humanTask;
     }
 }

@@ -13,19 +13,23 @@ import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.validator.constraints.NotBlank;
 
 /**
- * Metrics for a rule (flow group) as used in a test run.
+ * Metrics for a Human Task as used in a test run.
  */
 @Entity
-public class MeasuredRule extends PersistentObject {
+public class MeasuredHumanTask extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
 
-    /** The identifier of the rule flow group. */
+    /** The identifier of the task. */
     @Column(nullable = false, updatable = false)
     @NotBlank
-    private String ruleFlowGroup;
+    private String taskName;
 
-    /** The unique ID of the Rule node this call was made for. */
+    /** The identifier of the task group. */
+    @Column(updatable = false)
+    private String groupId;
+
+    /** The unique ID of the Human Task node this call was made for. */
     @Column(nullable = false, updatable = false)
     @NotNull
     private String nodeId;
@@ -39,28 +43,39 @@ public class MeasuredRule extends PersistentObject {
     private Date endingTime;
 
     /** Default constructor, required by JPA. */
-    protected MeasuredRule() {
+    protected MeasuredHumanTask() {
     }
 
     /**
      * Parameterized constructor.
      * 
-     * @param ruleFlowGroup
-     *            The identifier of the rule flow group.
+     * @param taskName
+     *            The identifier of the task.
+     * @param groupId
+     *            The identifier of the task group.
      * @param nodeId
-     *            The unique ID of the Rule node this call was made for.
+     *            The unique ID of the Human Task node this call was made for.
      */
-    public MeasuredRule(final String ruleFlowGroup, final String nodeId) {
-        this.ruleFlowGroup = ruleFlowGroup;
+    public MeasuredHumanTask(final String taskName, final String groupId, final String nodeId) {
+        setTaskName(taskName);
+        this.groupId = groupId;
         this.nodeId = nodeId;
     }
 
-    public String getRuleFlowGroup() {
-        return ruleFlowGroup;
+    public String getTaskName() {
+        return taskName;
     }
 
-    void setRuleFlowGroup(final String ruleFlowGroup) {
-        this.ruleFlowGroup = ruleFlowGroup;
+    void setTaskName(final String taskName) {
+        this.taskName = taskName;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    void setGroupId(final String groupId) {
+        this.groupId = groupId;
     }
 
     public String getNodeId() {
@@ -88,15 +103,18 @@ public class MeasuredRule extends PersistentObject {
     }
 
     public String print() {
-        final StringBuilder sb = new StringBuilder().append("\n\n    MeasuredRule:\n     * Rule flow group: ").append(ruleFlowGroup);
+        final StringBuilder sb = new StringBuilder().append("\n\n    MeasuredHumanTask:\n     * Task Name: ").append(taskName);
+        if (groupId != null) {
+            sb.append("\n     * Group ID: ").append(groupId);
+        }
         final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         if (endingTime != null) {
             sb.append("\n     * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
                     .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
         } else if (startingTime != null) {
-            sb.append("\n     * Rule activated at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+            sb.append("\n     * Task executed at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
         } else {
-            sb.append("\n     * Rule not activated yet.");
+            sb.append("\n     * Rule not executed yet.");
         }
         return sb.toString();
     }
@@ -104,7 +122,7 @@ public class MeasuredRule extends PersistentObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = (PRIME * result) + ObjectUtils.hashCode(ruleFlowGroup);
+        result = (PRIME * result) + ObjectUtils.hashCode(taskName);
         return result;
     }
 
@@ -114,16 +132,16 @@ public class MeasuredRule extends PersistentObject {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof MeasuredRule)) {
+        if (!(obj instanceof MeasuredHumanTask)) {
             return false;
         }
 
-        final MeasuredRule other = (MeasuredRule) obj;
-        return super.equals(other) && ObjectUtils.equals(ruleFlowGroup, other.getRuleFlowGroup());
+        final MeasuredHumanTask other = (MeasuredHumanTask) obj;
+        return super.equals(other) && ObjectUtils.equals(taskName, other.getTaskName());
     }
 
     @Override
     public String toString() {
-        return new StringBuilder().append("MeasuredRule [ruleFlowGroup=").append(ruleFlowGroup).append("]").toString();
+        return new StringBuilder().append("MeasuredHumanTask [taskName=").append(taskName).append(", groupId=").append(groupId).append("]").toString();
     }
 }

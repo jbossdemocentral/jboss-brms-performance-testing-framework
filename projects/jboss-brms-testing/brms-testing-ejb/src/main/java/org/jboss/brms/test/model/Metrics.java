@@ -145,6 +145,9 @@ public class Metrics extends PersistentObject {
                     for (final MeasuredRule mr : mpi.getRules()) {
                         sb.append(mr.print());
                     }
+                    for (final MeasuredHumanTask mht : mpi.getHumanTasks()) {
+                        sb.append(mht.print());
+                    }
                 }
             }
         }
