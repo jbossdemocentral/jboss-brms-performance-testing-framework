@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Logger;
 import org.drools.KnowledgeBase;
@@ -19,10 +20,10 @@ import org.jboss.brms.test.util.Resources.GuvnorConfig;
 
 @Stateless
 public class GuvnorService {
-    private static final String CHANGESET_PATTERN = "<change-set xmlns='http://drools.org/drools-5.0/change-set' xmlns:xs='http://www.w3.org/2001/XMLSchema-instance'"
-            + " xs:schemaLocation='http://drools.org/drools-5.0/change-set http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk/drools-api/src/main/resources/change-set-1.0.0.xsd'>"
+    private static final String CHANGESET_PATTERN = "<change-set xmlns=\"http://drools.org/drools-5.0/change-set\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\""
+            + " xs:schemaLocation=\"http://drools.org/drools-5.0/change-set http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk/drools-api/src/main/resources/change-set-1.0.0.xsd\">"
             + "<add>{0}</add></change-set>";
-    private static final String RESOURCE_PATTERN = "<resource source='{0}/rest/packages/{1}/binary' type='PKG' basicAuthentication=\"enabled\" username=\"{2}\" password=\"{3}\" />";
+    private static final String RESOURCE_PATTERN = "<resource source=\"{0}/rest/packages/{1}/binary\" type=\"PKG\" basicAuthentication=\"enabled\" username=\"{2}\" password=\"{3}\" />";
 
     private static final String GUVNOR_CONFIG_URL = "guvnor.url";
     private static final String GUVNOR_CONFIG_USER_NAME = "guvnor.user";
@@ -65,6 +66,20 @@ public class GuvnorService {
      */
     public <T> T getFromGuvnor(final String path, final Class<T> clazz) {
         log.info("Retrieving " + clazz.getSimpleName() + " from Guvnor on path [" + path + "].");
-        return new GuvnorRestUtil(guvnorConfig).getFromGuvnor(path, clazz);
+        return GuvnorRestUtil.getFromGuvnor(guvnorConfig, path, clazz);
+    }
+
+    /**
+     * Get a resource from Guvnor.
+     * 
+     * @param path
+     *            The path to the resource.
+     * @param mediaType
+     *            The expected media type.
+     * @return The resource, in the expected media type, as a {@link String}.
+     */
+    public String getFromGuvnor(final String path, final MediaType mediaType) {
+        log.info("Retrieving resource with type " + mediaType + " from Guvnor on path [" + path + "].");
+        return GuvnorRestUtil.getFromGuvnor(guvnorConfig, path, mediaType);
     }
 }

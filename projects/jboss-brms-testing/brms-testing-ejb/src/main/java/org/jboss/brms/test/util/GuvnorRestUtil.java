@@ -28,29 +28,8 @@ public final class GuvnorRestUtil {
     private static final String GUVNOR_CONFIG_USER_NAME = "guvnor.user";
     private static final String GUVNOR_CONFIG_PASSWORD = "guvnor.password";
 
-    private static final MediaType DEFAULT_MEDIA_TYPE = MediaType.APPLICATION_XML_TYPE;
-
-    private static MediaType EXPECTED_MEDIA_TYPE = DEFAULT_MEDIA_TYPE;
-
-    private final Properties guvnorConfig;
-
-    public GuvnorRestUtil(final Properties guvnorConfig) {
-        this.guvnorConfig = guvnorConfig;
-    }
-
-    public static MediaType getExpectedMediaType() {
-        return EXPECTED_MEDIA_TYPE;
-    }
-
-    /**
-     * If any other type of output is required, set it here.
-     * 
-     * @param expectedMediaType
-     *            Any of {@link MediaType#APPLICATION_XML_TYPE} (the default), {@link MediaType#APPLICATION_JSON_TYPE} or
-     *            {@link MediaType#APPLICATION_ATOM_XML_TYPE}. Other values are not supported by the Guvnor API.
-     */
-    public static void setExpectedMediaType(final MediaType expectedMediaType) {
-        EXPECTED_MEDIA_TYPE = expectedMediaType;
+    /** Private constructor to prevent instantiation. */
+    private GuvnorRestUtil() {
     }
 
     /**
@@ -62,10 +41,9 @@ public final class GuvnorRestUtil {
      *            The (JAXB generated) {@link Class} into which the Guvnor reponse is to be unmarshalled.
      * @return The response, unmarshalled into the given class.
      */
-    public <T> T getFromGuvnor(final String path, final Class<T> clazz) {
+    public static <T> T getFromGuvnor(final Properties guvnorConfig, final String path, final Class<T> clazz) {
         // Retrieve the info from Guvnor as XML.
-        setExpectedMediaType(MediaType.APPLICATION_XML_TYPE);
-        final String responseXml = getFromGuvnor(path);
+        final String responseXml = getFromGuvnor(guvnorConfig, path, MediaType.APPLICATION_XML_TYPE);
 
         // Unmarshal the response.
         T result = null;
@@ -80,9 +58,12 @@ public final class GuvnorRestUtil {
      * 
      * @param path
      *            The path to the resource.
+     * @param expectedMediaType
+     *            Any {@link MediaType}. Most queries will return one of {@link MediaType#APPLICATION_XML_TYPE} (the default),
+     *            {@link MediaType#APPLICATION_JSON_TYPE} or {@link MediaType#APPLICATION_ATOM_XML_TYPE}; some will support other choices.
      * @return The response, in the expected media type, as a {@link String}.
      */
-    public String getFromGuvnor(final String path) {
+    public static String getFromGuvnor(final Properties guvnorConfig, final String path, final MediaType expectedMediaType) {
         String output = null;
 
         // Create HTTP client for authenticated REST API.
@@ -100,7 +81,7 @@ public final class GuvnorRestUtil {
         // Create request from the client and context, accepting JSON replies.
         final ClientRequest request = new ClientRequest(guvnorConfig.getProperty(GUVNOR_CONFIG_REST_BASE_URL) + path, new ApacheHttpClient4Executor(httpClient,
                 ctx));
-        request.header(HttpHeaders.ACCEPT, EXPECTED_MEDIA_TYPE.toString());
+        request.header(HttpHeaders.ACCEPT, expectedMediaType.toString());
 
         // Make the call.
         try {

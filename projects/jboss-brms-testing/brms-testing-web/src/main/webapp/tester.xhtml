@@ -8,25 +8,39 @@
                 <h:outputText value="Choose Guvnor package: " />
                 <h:selectOneMenu value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.packageSelected}">
                     <f:selectItems value="#{testerBean.packageList}" />
-                    <a4j:ajax event="valueChange" render="assetOverview" execute="@this" />
+                    <a4j:ajax event="valueChange" render="processOverview" execute="@this" />
                 </h:selectOneMenu>
-                <rich:extendedDataTable id="assetOverview" value="#{testerBean.assets}" var="asset" noDataLabel="No assets available for package...">
+                <rich:extendedDataTable id="processOverview" value="#{testerBean.processes}" var="process" noDataLabel="No processes available for package...">
                     <rich:column width="300px">
                         <f:facet name="header">
-                            <h:outputText value="Asset" />
+                            <h:outputText value="Process" />
                         </f:facet>
-                        <h:outputText value="#{asset}" />
+                        <h:outputText value="#{process}" />
                     </rich:column>
                     <rich:column width="76px">
                         <f:facet name="header">
                             <h:outputText value="include?" />
                         </f:facet>
-                        <h:selectBooleanCheckbox value="true" style="text-align: center;"/>
+                        <h:selectBooleanCheckbox value="true" style="text-align: center;" valueChangeListener="#{testerBean.processSelected}" />
+                        <h:inputHidden value="#{process}" />
                     </rich:column>
                 </rich:extendedDataTable>
             </rich:panel>
             <rich:panel>
-                <a4j:commandButton value="Run it!" action="#{testerBean.startProcessInstance}"/>
+                <p>
+                    <h:outputLabel value="Number of process instances to start:" for="number" />
+                    <rich:inputNumberSlider id="number" value="#{testerBean.numberOfInstances}" minValue="1" maxValue="1000" />
+                </p>
+                <p>
+                    <h:outputLabel value="Start process instances in parallel:" for="inParallel" />
+                    <h:selectBooleanCheckbox id="inParallel" value="#{testerBean.startInParallel}" style="text-align: center;" />
+                </p>
+                <p>
+                    <h:outputLabel value="Run instances in individual sessions:" for="individual" />
+                    <h:selectBooleanCheckbox id="individual" value="#{testerBean.runInIndividualKnowledgeSession}" style="text-align: center;" />
+                </p>
+                <a4j:commandButton value="Run process(es)!" execute="@form" action="#{testerBean.startProcessInstance}"
+                    disabled="empty #{testerBean.selectedPackage} or empty #{testerBean.selectedProcess}" />
             </rich:panel>
         </h:form>
     </ui:define>
