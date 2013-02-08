@@ -10,6 +10,8 @@ import java.util.Properties;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Qualifier;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.apache.log4j.Logger;
 
@@ -21,6 +23,11 @@ public class Resources {
 
     private final Properties guvnorConfiguration = new Properties();
 
+    @SuppressWarnings("unused")
+    @Produces
+    @PersistenceContext(unitName = "brms-testing")
+    private EntityManager em;
+
     @Produces
     public Logger produceLogger(final InjectionPoint injectionPoint) {
         return Logger.getLogger(injectionPoint.getMember().getDeclaringClass());
@@ -28,7 +35,7 @@ public class Resources {
 
     @Produces
     @GuvnorConfig
-    public Properties produceSmsConfiguration() {
+    public Properties produceGuvnorConfiguration() {
         if (guvnorConfiguration.isEmpty()) {
             try {
                 guvnorConfiguration.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(GUVNOR_CONFIG_FILE));

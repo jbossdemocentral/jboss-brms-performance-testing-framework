@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.validator.constraints.NotBlank;
+import org.jboss.brms.test.service.MetricsService;
 
 /**
  * Metrics for a rule (flow group) as used in a test run.
@@ -19,6 +20,11 @@ import org.hibernate.validator.constraints.NotBlank;
 public class MeasuredRule extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
+
+    /** The ID of the {@link Metrics} object this rule belongs to. */
+    @Column(nullable = false, updatable = false)
+    @NotNull
+    private Long metricsId;
 
     /** The identifier of the rule flow group. */
     @Column(nullable = false, updatable = false)
@@ -43,16 +49,27 @@ public class MeasuredRule extends PersistentObject {
     }
 
     /**
-     * Parameterized constructor.
+     * Parameterized constructor, for use by the {@link MetricsService}.
      * 
+     * @param metricsId
+     *            The ID of the {@link Metrics} this package belongs to.
      * @param ruleFlowGroup
      *            The identifier of the rule flow group.
      * @param nodeId
      *            The unique ID of the Rule node this call was made for.
      */
-    public MeasuredRule(final String ruleFlowGroup, final String nodeId) {
+    public MeasuredRule(final Long metricsId, final String ruleFlowGroup, final String nodeId) {
+        this.metricsId = metricsId;
         this.ruleFlowGroup = ruleFlowGroup;
         this.nodeId = nodeId;
+    }
+
+    public Long getMetricsId() {
+        return metricsId;
+    }
+
+    void setMetricsId(final Long metricsId) {
+        this.metricsId = metricsId;
     }
 
     public String getRuleFlowGroup() {
@@ -103,8 +120,10 @@ public class MeasuredRule extends PersistentObject {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
+        int result = HASH_SEED;
+        result = (PRIME * result) + ObjectUtils.hashCode(metricsId);
         result = (PRIME * result) + ObjectUtils.hashCode(ruleFlowGroup);
+        result = (PRIME * result) + ObjectUtils.hashCode(nodeId);
         return result;
     }
 
@@ -119,7 +138,8 @@ public class MeasuredRule extends PersistentObject {
         }
 
         final MeasuredRule other = (MeasuredRule) obj;
-        return super.equals(other) && ObjectUtils.equals(ruleFlowGroup, other.getRuleFlowGroup());
+        return ObjectUtils.equals(metricsId, other.getMetricsId()) && ObjectUtils.equals(ruleFlowGroup, other.getRuleFlowGroup())
+                && ObjectUtils.equals(nodeId, other.getNodeId());
     }
 
     @Override

@@ -11,7 +11,6 @@ import org.drools.KnowledgeBase;
 import org.drools.builder.ResourceType;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.process.ProcessInstance;
-import org.jboss.brms.test.service.metrics.MetricsCollector;
 import org.jbpm.process.instance.impl.demo.SystemOutWorkItemHandler;
 import org.jbpm.process.workitem.wsht.SyncWSHumanTaskHandler;
 import org.jbpm.task.AccessType;
@@ -82,10 +81,10 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
     @Test
     public void rewardApprovedTest() {
         // Add collector for the metrics.
-        final MetricsCollector collector = new MetricsCollector(ksession);
+        // final MetricsCollector collector = new MetricsCollector(MockFactory.createMetricsFactory(), ksession);
 
         // Start process instance.
-        collector.startTest();
+        // collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.approval.rewards.extended");
 
         // Retrieve and execute task with approval.
@@ -103,23 +102,23 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
         taskService.complete(task.getId(), "mary", content);
 
         // Capture end of test run.
-        collector.endTest();
+        // collector.endTest();
 
         // Test for completion and in correct end node.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
         assertNodeTriggered(processInstance.getId(), "End Approved");
 
         // Print metrics.
-        System.out.println(collector.getMetrics().printAll());
+        // System.out.println(collector.getMetrics().printAll());
     }
 
     @Test
     public void rewardRejectedTest() {
         // Add collector for the metrics.
-        final MetricsCollector collector = new MetricsCollector(ksession);
+        // final MetricsCollector collector = new MetricsCollector(MockFactory.createMetricsFactory(), ksession);
 
         // Start process instance.
-        collector.startTest();
+        // collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.approval.rewards.extended");
 
         // Retrieve and execute task with rejection.
@@ -137,13 +136,13 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
         taskService.complete(task.getId(), "john", content);
 
         // Capture end of test run.
-        collector.endTest();
+        // collector.endTest();
 
         // Test for completion and in correct end node.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
         assertNodeTriggered(processInstance.getId(), "End Rejected");
 
         // Print metrics.
-        System.out.println(collector.getMetrics().printAll());
+        // System.out.println(collector.getMetrics().printAll());
     }
 }

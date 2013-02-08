@@ -10,6 +10,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
+import org.jboss.brms.test.service.MetricsService;
+
 /**
  * Metrics for a single test run.
  */
@@ -43,14 +45,34 @@ public class Metrics extends PersistentObject {
     private Date endingTime;
 
     /** Default constructor, required by JPA. */
-    public Metrics() {
+    protected Metrics() {
+    }
+
+    /**
+     * Parameterized constructor, for use by the {@link MetricsService}.
+     * 
+     * @param numberOfMachines
+     *            Number of machines used to run the processes.
+     * @param loadBalancingUsed
+     *            If multiple machines were used, was load balancing applied?
+     * @param processesStartedInParallel
+     *            Are the process instances started to run at the same time?
+     * @param processesRunInIndividualKnowledgeSession
+     *            Are the process instances each started in their own stateful knowledge session?
+     */
+    public Metrics(final Integer numberOfMachines, final Boolean loadBalancingUsed, final Boolean processesStartedInParallel,
+            final Boolean processesRunInIndividualKnowledgeSession) {
+        this.numberOfMachines = numberOfMachines;
+        this.loadBalancingUsed = loadBalancingUsed;
+        this.processesStartedInParallel = processesStartedInParallel;
+        this.processesRunInIndividualKnowledgeSession = processesRunInIndividualKnowledgeSession;
     }
 
     public Integer getNumberOfMachines() {
         return numberOfMachines;
     }
 
-    public void setNumberOfMachines(final Integer numberOfMachines) {
+    void setNumberOfMachines(final Integer numberOfMachines) {
         this.numberOfMachines = numberOfMachines;
     }
 
@@ -58,7 +80,7 @@ public class Metrics extends PersistentObject {
         return loadBalancingUsed;
     }
 
-    public void setLoadBalancingUsed(final Boolean loadBalancingUsed) {
+    void setLoadBalancingUsed(final Boolean loadBalancingUsed) {
         this.loadBalancingUsed = loadBalancingUsed;
     }
 
@@ -66,7 +88,7 @@ public class Metrics extends PersistentObject {
         return processesStartedInParallel;
     }
 
-    public void setProcessesStartedInParallel(final Boolean processesStartedInParallel) {
+    void setProcessesStartedInParallel(final Boolean processesStartedInParallel) {
         this.processesStartedInParallel = processesStartedInParallel;
     }
 
@@ -74,7 +96,7 @@ public class Metrics extends PersistentObject {
         return processesRunInIndividualKnowledgeSession;
     }
 
-    public void setProcessesRunInIndividualKnowledgeSession(final Boolean processesRunInIndividualKnowledgeSession) {
+    void setProcessesRunInIndividualKnowledgeSession(final Boolean processesRunInIndividualKnowledgeSession) {
         this.processesRunInIndividualKnowledgeSession = processesRunInIndividualKnowledgeSession;
     }
 

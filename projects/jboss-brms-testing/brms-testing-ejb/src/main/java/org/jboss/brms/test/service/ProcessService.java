@@ -1,7 +1,5 @@
 package org.jboss.brms.test.service;
 
-import java.util.Map;
-
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
@@ -19,29 +17,10 @@ public class ProcessService {
 
     @EJB
     private GuvnorService guvnorService;
-
+    @EJB
+    private MetricsService metricsService;
     @EJB
     private ProcessInstanceRunner runner;
-
-    public Metrics runInstance(final String packageName, final String processId, final Map<String, Object> parms) {
-        log.info("Running process instance for process " + processId + " contained in package " + packageName);
-
-        // If found, use a knowledge builder with corresponding change set to create a knowledge base.
-        final KnowledgeBase kbase = guvnorService.retrieveKnowledgeBaseFromGuvnor(packageName);
-
-        // Create and start the process instance from the knowledge base.
-        final StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-        final ProcessStartParameters parameters = new ProcessStartParameters();
-        parameters.setStartInParallel(false);
-        parameters.setRunInIndividualKnowledgeSession(false);
-        final MetricsCollector collector = new MetricsCollector(parameters);
-        collector.startTest();
-        ksession.startProcess(processId, parms);
-        ksession.fireAllRules();
-        collector.endTest();
-
-        return collector.getMetrics();
-    }
 
     public Metrics runProcesses(final ProcessStartParameters parameters) {
         log.info("Running process instance for process " + parameters.getProcessId() + " contained in package " + parameters.getPackageName());
@@ -51,7 +30,7 @@ public class ProcessService {
 
         // Run the test as indicated.
         StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-        final MetricsCollector collector = new MetricsCollector(parameters);
+        final MetricsCollector collector = new MetricsCollector(metricsService, parameters);
         collector.addSession(ksession);
         collector.startTest();
 

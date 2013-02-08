@@ -6,9 +6,11 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.validator.constraints.NotBlank;
+import org.jboss.brms.test.service.MetricsService;
 
 /**
  * Metrics for a process (definition) as used in a test run.
@@ -17,6 +19,11 @@ import org.hibernate.validator.constraints.NotBlank;
 public class MeasuredProcess extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
+
+    /** The ID of the {@link Metrics} object this process belongs to. */
+    @Column(nullable = false, updatable = false)
+    @NotNull
+    private Long metricsId;
 
     /** The name of the process, as known in Guvnor. */
     @Column(nullable = false, updatable = false)
@@ -31,13 +38,24 @@ public class MeasuredProcess extends PersistentObject {
     }
 
     /**
-     * Parameterized constructor.
+     * Parameterized constructor, for use by the {@link MetricsService}.
      * 
+     * @param metricsId
+     *            The ID of the {@link Metrics} this package belongs to.
      * @param id
      *            The name of the process.
      */
-    public MeasuredProcess(final String id) {
+    public MeasuredProcess(final Long metricsId, final String id) {
+        this.metricsId = metricsId;
         processId = id;
+    }
+
+    public Long getMetricsId() {
+        return metricsId;
+    }
+
+    void setMetricsId(final Long metricsId) {
+        this.metricsId = metricsId;
     }
 
     public String getProcessId() {
@@ -71,6 +89,7 @@ public class MeasuredProcess extends PersistentObject {
     @Override
     public int hashCode() {
         int result = HASH_SEED;
+        result = (PRIME * result) + ObjectUtils.hashCode(metricsId);
         result = (PRIME * result) + ObjectUtils.hashCode(processId);
         return result;
     }
@@ -86,7 +105,7 @@ public class MeasuredProcess extends PersistentObject {
         }
 
         final MeasuredProcess other = (MeasuredProcess) obj;
-        return ObjectUtils.equals(processId, other.getProcessId());
+        return ObjectUtils.equals(metricsId, other.getMetricsId()) && ObjectUtils.equals(processId, other.getProcessId());
     }
 
     @Override

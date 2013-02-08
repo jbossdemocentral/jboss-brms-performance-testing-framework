@@ -7,7 +7,6 @@ import org.drools.KnowledgeBase;
 import org.drools.builder.ResourceType;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.process.ProcessInstance;
-import org.jboss.brms.test.service.metrics.MetricsCollector;
 import org.jbpm.test.JbpmJUnitTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -58,21 +57,21 @@ public class CustomerEvalProcessTest extends JbpmJUnitTestCase {
     @Test
     public void emptyRequest() {
         // Add collector for the metrics.
-        final MetricsCollector collector = new MetricsCollector(ksession);
+        // final MetricsCollector collector = new MetricsCollector(MockFactory.createMetricsFactory(), ksession);
 
         // Start process instance.
-        collector.startTest();
+        // collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.customer-evaluation");
         ksession.fireAllRules();
 
         // Capture end of test run.
-        collector.endTest();
+        // collector.endTest();
 
         // Check whether the process instance has completed successfully.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
 
         // Print metrics.
-        System.out.println(collector.getMetrics().printAll());
+        // System.out.println(collector.getMetrics().printAll());
     }
 
     @Test
@@ -88,20 +87,20 @@ public class CustomerEvalProcessTest extends JbpmJUnitTestCase {
         params.put("request", request);
 
         // Add collector for the metrics.
-        final MetricsCollector collector = new MetricsCollector(ksession);
+        // final MetricsCollector collector = new MetricsCollector(new MetricsService(), ksession);
 
         // Start process instance.
-        collector.startTest();
+        // collector.startTest();
         final ProcessInstance processInstance = ksession.startProcess("org.jbpm.customer-evaluation", params);
         ksession.fireAllRules();
 
         // Capture end of test run.
-        collector.endTest();
+        // collector.endTest();
 
         // Check whether the process instance has completed successfully.
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
 
         // Print metrics.
-        System.out.println(collector.getMetrics().printAll());
+        // System.out.println(collector.getMetrics().printAll());
     }
 }

@@ -1,49 +1,52 @@
 package org.jboss.brms.test.service.metrics;
 
-import java.util.Date;
-
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.jboss.brms.test.model.Metrics;
+import org.jboss.brms.test.service.MetricsService;
 import org.jboss.brms.test.service.ProcessStartParameters;
 
 public class MetricsCollector {
-    private final Metrics metrics;
+    private final MetricsService metricsService;
+    private final Long metricsId;
 
     private final ProcessEventListener processEventListener;
 
     /**
-     * Constructor for running a single process.
+     * Constructor for running a single process (e.g. in unit tests).
      * 
+     * @param metricsFactory
+     *            The service that governs all metrics related objects.
      * @param ksession
      *            The {@link StatefulKnowledgeSession} in which the instance is run.
      */
-    public MetricsCollector(final StatefulKnowledgeSession ksession) {
-        this((ProcessStartParameters) null);
+    public MetricsCollector(final MetricsService metricsService, final StatefulKnowledgeSession ksession) {
+        this(metricsService, (ProcessStartParameters) null);
         addSession(ksession);
     }
 
     /**
-     * Constructor for running more complex scenarios
+     * Constructor for running more complex scenarios.
      * 
+     * @param metricsService
+     *            The service that governs all metrics related objects.
      * @param parameters
      *            The parameters for the scenarios.
      */
-    public MetricsCollector(final ProcessStartParameters parameters) {
-        metrics = new Metrics();
-        processEventListener = new ProcessEventListener(metrics);
+    public MetricsCollector(final MetricsService metricsService, final ProcessStartParameters parameters) {
+        this.metricsService = metricsService;
 
-        // Hard-code for now:
-        metrics.setNumberOfMachines(Integer.valueOf(1));
-        metrics.setLoadBalancingUsed(Boolean.FALSE);
-
+        Metrics metrics = null;
         if (parameters != null) {
-            metrics.setProcessesStartedInParallel(parameters.isStartInParallel());
-            metrics.setProcessesRunInIndividualKnowledgeSession(parameters.isRunInIndividualKnowledgeSession());
+            // TODO: Hard-coded #machines and loadbalancing for now:
+            metrics = metricsService.createMetrics(Integer.valueOf(1), Boolean.FALSE, parameters.isStartInParallel(),
+                    parameters.isRunInIndividualKnowledgeSession());
         } else {
-            // Hard-code for single run:
-            metrics.setProcessesStartedInParallel(Boolean.FALSE);
-            metrics.setProcessesRunInIndividualKnowledgeSession(Boolean.FALSE);
+            // Hard-coded for single run:
+            metrics = metricsService.createMetrics(Integer.valueOf(1), Boolean.FALSE, Boolean.FALSE, Boolean.FALSE);
         }
+        metricsId = metrics.getId();
+
+        processEventListener = new ProcessEventListener(metricsService, metricsId);
     }
 
     public void addSession(final StatefulKnowledgeSession ksession) {
@@ -52,14 +55,14 @@ public class MetricsCollector {
     }
 
     public void startTest() {
-        metrics.setStartingTime(new Date());
+        metricsService.setTestStartTime(metricsId);
     }
 
     public void endTest() {
-        metrics.setEndingTime(new Date());
+        metricsService.setTestEndTime(metricsId);
     }
 
     public Metrics getMetrics() {
-        return metrics;
+        return metricsService.findMetricsById(metricsId);
     }
 }

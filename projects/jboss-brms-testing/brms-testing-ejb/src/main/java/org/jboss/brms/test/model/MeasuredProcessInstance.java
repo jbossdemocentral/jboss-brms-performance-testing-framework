@@ -12,6 +12,7 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.jboss.brms.test.service.MetricsService;
 
 /**
  * Metrics for a process instance as used in a test run.
@@ -21,7 +22,17 @@ public class MeasuredProcessInstance extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
 
-    /** The unique ID of this process instance. */
+    /** The ID of the {@link Metrics} object this process instance belongs to. */
+    @Column(nullable = false, updatable = false)
+    @NotNull
+    private Long metricsId;
+
+    /** The ID of the process this is an instance of. */
+    @Column(nullable = false, updatable = false)
+    @NotNull
+    private String processId;
+
+    /** The ID of this process instance. */
     @Column(nullable = false, updatable = false)
     @NotNull
     private Long processInstanceId;
@@ -47,14 +58,36 @@ public class MeasuredProcessInstance extends PersistentObject {
     }
 
     /**
-     * Parameterized constructor.
+     * Parameterized constructor, for use by the {@link MetricsService}.
      * 
-     * @param id
-     *            The unique ID of the process instance for which the metrics are kept in this object.
+     * @param metricsId
+     *            The ID of the {@link Metrics} this package belongs to.
+     * @param processId
+     *            The ID of the process this is an instance of.
+     * @param processInstanceId
+     *            The ID of the process instance for which the metrics are kept in this object.
      */
-    public MeasuredProcessInstance(final Long id) {
-        processInstanceId = id;
+    public MeasuredProcessInstance(final Long metricsId, final String processId, final Long processInstanceId) {
+        this.metricsId = metricsId;
+        setProcessId(processId);
+        this.processInstanceId = processInstanceId;
         numberOfNodesVisited = Integer.valueOf(0);
+    }
+
+    public Long getMetricsId() {
+        return metricsId;
+    }
+
+    void setMetricsId(final Long metricsId) {
+        this.metricsId = metricsId;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
+
+    void setProcessId(final String processId) {
+        this.processId = processId;
     }
 
     public Long getProcessInstanceId() {
@@ -152,9 +185,9 @@ public class MeasuredProcessInstance extends PersistentObject {
     @Override
     public int hashCode() {
         int result = HASH_SEED;
+        result = (PRIME * result) + ObjectUtils.hashCode(metricsId);
+        result = (PRIME * result) + ObjectUtils.hashCode(processId);
         result = (PRIME * result) + ObjectUtils.hashCode(processInstanceId);
-        result = (PRIME * result) + ObjectUtils.hashCode(startingTime);
-        result = (PRIME * result) + ObjectUtils.hashCode(endingTime);
         return result;
     }
 
@@ -169,8 +202,8 @@ public class MeasuredProcessInstance extends PersistentObject {
         }
 
         final MeasuredProcessInstance other = (MeasuredProcessInstance) obj;
-        return ObjectUtils.equals(processInstanceId, other.getProcessInstanceId()) && ObjectUtils.equals(startingTime, other.getStartingTime())
-                && ObjectUtils.equals(endingTime, other.getEndingTime());
+        return ObjectUtils.equals(metricsId, other.getMetricsId()) && ObjectUtils.equals(processId, other.getProcessId())
+                && ObjectUtils.equals(processInstanceId, other.getProcessInstanceId());
     }
 
     @Override
