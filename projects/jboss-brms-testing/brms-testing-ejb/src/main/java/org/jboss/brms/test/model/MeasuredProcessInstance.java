@@ -5,10 +5,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
@@ -48,9 +51,13 @@ public class MeasuredProcessInstance extends PersistentObject {
     private Integer numberOfNodesVisited;
 
     /** The rules used for this instance. */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Valid
     private Set<MeasuredRule> rules;
 
     /** The Human Tasks used for this instance. */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Valid
     private Set<MeasuredHumanTask> humanTasks;
 
     /** Default constructor, required by JPA. */

@@ -5,9 +5,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.jboss.brms.test.service.MetricsService;
@@ -34,6 +37,8 @@ public class Metrics extends PersistentObject {
     private Boolean processesRunInIndividualKnowledgeSession;
 
     /** The packages used in the test run. */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Valid
     private Set<MeasuredPackage> packages;
 
     /** The moment the test run began. */
