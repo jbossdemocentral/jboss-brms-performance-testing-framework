@@ -11,7 +11,7 @@ echo
 echo Setting up the EAP + BRMS testing environment...
 echo
 
-# make some checks first before proceeding.	
+# Checks the availability of the downloads first before proceeding.
 if [[ -x $SRC_DIR/$EAP || -L $SRC_DIR/$EAP ]]; then
 	echo EAP sources are present...
 	echo
@@ -32,7 +32,7 @@ else
 	exit
 fi
 
-# Create the target directory if it does not already exist
+# Create the target directory if it does not already exist.
 if [ ! -x target ]; then
 	echo "  - creating the target directory..."
 	echo
@@ -42,22 +42,22 @@ else
 	echo
 fi
 
-# Move the old JBoss instance, if it exists, to the OLD position
+# Move the old JBoss instance, if it exists, to the OLD position.
 if [ -x $JBOSS_HOME ]; then
-	echo "  - existing JBoss Enterprise Application Platform $VERSION detected..."
+	echo "  - existing JBoss Enterprise Application Platform $EAP_VERSION detected..."
 	echo
-	echo "  - moving existing JBoss Enterprise Application Platform $VERSION aside..."
+	echo "  - moving existing JBoss Enterprise Application Platform $EAP_VERSION aside..."
 	echo
   rm -rf $JBOSS_HOME.OLD
   mv $JBOSS_HOME $JBOSS_HOME.OLD
 fi
 
-# Unzip the JBoss EAP instance
+# Unzip the JBoss EAP instance.
 echo Unpacking JBoss Enterprise Application Platform $EAP_VERSION...
 echo
 unzip -q -d target $SRC_DIR/$EAP
 
-# Unzip the required files from JBoss BRMS Deployable
+# Unzip the required files from JBoss BRMS deployable.
 echo Unpacking JBoss Enterprise BRMS $BRMS_VERSION...
 echo
 
@@ -73,7 +73,7 @@ echo
 unzip -q -d $SERVER_DIR/deployments jboss-jbpm-console-ee6.zip
 rm jboss-jbpm-console-ee6.zip
 
-echo Rounding up, setting permissions and copying support files...
+echo Copy support files "for" enabling BRMS security and deployment...
 echo
 # Set permissions for BRMS.
 cp support/standalone.xml $SERVER_DIR/configuration
@@ -81,12 +81,21 @@ cp support/brms-roles.properties $SERVER_DIR/configuration
 cp support/brms-users.properties $SERVER_DIR/configuration
 cp support/components.xml $SERVER_DIR/deployments/jboss-brms.war/WEB-INF
 
-# Enable deployments of BRMS WARs
-cp support/jboss-brms.war.dodeploy $SERVER_DIR/deployments
-cp support/business-central.war.dodeploy $SERVER_DIR/deployments
-cp support/business-central-server.war.dodeploy $SERVER_DIR/deployments
-cp support/designer.war.dodeploy $SERVER_DIR/deployments
-cp support/jbpm-human-task.war.dodeploy $SERVER_DIR/deployments
+# Enable deployments of BRMS WARs.
+touch $SERVER_DIR/deployments/jboss-brms.war.dodeploy
+touch $SERVER_DIR/deployments/business-central.war.dodeploy
+touch $SERVER_DIR/deployments/business-central-server.war.dodeploy
+touch $SERVER_DIR/deployments/designer.war.dodeploy
+touch $SERVER_DIR/deployments/jbpm-human-task.war.dodeploy
 
-echo Integration $VERSION Home Loan Demo Setup Complete.
+echo Copy "test" framework and dependencies "for" example processes...
+echo
+# Copy test framework.
+unzip -q -d $SERVER_DIR/deployments support/brms-testing.zip
+# Enable deployment of the framework EAR.
+touch $SERVER_DIR/deployments/brms-testing.ear.dodeploy
+# Copy model for customer evaluation process.
+cp support/CustomerEvalModel.jar $SERVER_DIR/deployments/brms-testing.ear/lib
+
+echo "Setup BRMS $BRMS_VERSION (integrated with EAP $EAP_VERSION) Performance Test Framework Complete."
 echo
