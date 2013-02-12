@@ -36,8 +36,6 @@ public class TesterBean implements Serializable {
     private static final String GUVNOR_API_ASSETS_PATH = GUVNOR_API_PACKAGES_PATH + "/{0}/assets";
     private static final String GUVNOR_API_BPMN_SOURCE_PATH = GUVNOR_API_ASSETS_PATH + "/{1}/source";
 
-    private static final String BPMN_PROCESS_ID_XPATH_EXPR = "//bpmn2:process[@id]";
-
     @Inject
     private transient Logger log;
 
@@ -57,13 +55,6 @@ public class TesterBean implements Serializable {
     private boolean runInIndividualKnowledgeSession;
 
     public List<SelectItem> getPackageList() {
-        if (packageList.isEmpty()) {
-            getGuvnorPackages();
-        }
-        return packageList;
-    }
-
-    private void getGuvnorPackages() {
         log.info("Retrieving packages from Guvnor...");
 
         // Call Guvnor to retrieve the available packages.
@@ -78,6 +69,8 @@ public class TesterBean implements Serializable {
             packageList.add(new SelectItem(pakkage.getTitle()));
         }
         processList.clear();
+
+        return packageList;
     }
 
     public String getSelectedPackage() {
