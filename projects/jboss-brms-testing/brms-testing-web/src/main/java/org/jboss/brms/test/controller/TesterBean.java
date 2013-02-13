@@ -22,6 +22,7 @@ import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.service.GuvnorService;
 import org.jboss.brms.test.service.ProcessService;
 import org.jboss.brms.test.service.ProcessStartParameters;
+import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
 import org.jboss.brms.test.util.XPathUtil;
 
 @Named
@@ -178,9 +179,7 @@ public class TesterBean implements Serializable {
         }
 
         final ProcessStartParameters parameters = new ProcessStartParameters();
-        parameters.setPackageName(getSelectedPackage());
-        parameters.setProcessId(getSelectedProcess());
-        parameters.setNumberOfInstances(getNumberOfInstances());
+        parameters.addIndicator(new ProcessIndicator(getSelectedPackage(), getSelectedProcess(), getNumberOfInstances()));
         parameters.setRunInIndividualKnowledgeSession(isRunInIndividualKnowledgeSession());
         parameters.setStartInParallel(isStartInParallel());
         final Metrics metrics = processService.runProcesses(parameters);

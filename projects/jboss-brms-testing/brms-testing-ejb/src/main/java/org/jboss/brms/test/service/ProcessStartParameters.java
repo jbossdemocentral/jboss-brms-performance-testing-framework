@@ -1,34 +1,26 @@
 package org.jboss.brms.test.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProcessStartParameters {
-    private String packageName;
-    private String processId;
-    private int numberOfInstances;
+    private List<ProcessIndicator> indicators;
     private boolean startInParallel;
     private boolean runInIndividualKnowledgeSession;
 
-    public String getPackageName() {
-        return packageName;
+    public List<ProcessIndicator> getIndicators() {
+        if (indicators == null) {
+            indicators = new ArrayList<ProcessStartParameters.ProcessIndicator>();
+        }
+        return indicators;
     }
 
-    public void setPackageName(final String packageName) {
-        this.packageName = packageName;
+    void setIndicators(final List<ProcessIndicator> indicators) {
+        this.indicators = indicators;
     }
 
-    public String getProcessId() {
-        return processId;
-    }
-
-    public void setProcessId(final String processId) {
-        this.processId = processId;
-    }
-
-    public int getNumberOfInstances() {
-        return numberOfInstances;
-    }
-
-    public void setNumberOfInstances(final int numberOfInstances) {
-        this.numberOfInstances = numberOfInstances;
+    public boolean addIndicator(final ProcessIndicator indicator) {
+        return getIndicators().add(indicator);
     }
 
     public boolean isStartInParallel() {
@@ -45,5 +37,29 @@ public class ProcessStartParameters {
 
     public void setRunInIndividualKnowledgeSession(final boolean runInIndividualKnowledgeSession) {
         this.runInIndividualKnowledgeSession = runInIndividualKnowledgeSession;
+    }
+
+    public static class ProcessIndicator {
+        private final String packageName;
+        private final String processId;
+        private final int numberOfInstances;
+
+        public ProcessIndicator(final String packageName, final String processId, final int numberOfInstances) {
+            this.packageName = packageName;
+            this.processId = processId;
+            this.numberOfInstances = numberOfInstances;
+        }
+
+        public String getPackageName() {
+            return packageName;
+        }
+
+        public String getProcessId() {
+            return processId;
+        }
+
+        public int getNumberOfInstances() {
+            return numberOfInstances;
+        }
     }
 }

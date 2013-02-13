@@ -16,6 +16,7 @@ import org.drools.KnowledgeBase;
 import org.drools.SystemEventListenerFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.jboss.brms.test.model.Metrics;
+import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
 import org.jboss.brms.test.service.metrics.MetricsCollector;
 import org.jbpm.process.instance.impl.demo.SystemOutWorkItemHandler;
 import org.jbpm.task.AccessType;
@@ -43,26 +44,31 @@ public class ProcessService {
     private ProcessInstanceRunner runner;
 
     public Metrics runProcesses(final ProcessStartParameters parameters) {
-        log.info("Running process instance for process " + parameters.getProcessId() + " contained in package " + parameters.getPackageName());
+        for (final ProcessIndicator indicator : parameters.getIndicators()) {
+            log.info("Running " + indicator.getNumberOfInstances() + " process instance(s) for process " + indicator.getProcessId() + " contained in package "
+                    + indicator.getPackageName());
+        }
 
-        // If found, use a knowledge builder with corresponding change set to create a knowledge base.
-        final KnowledgeBase kbase = guvnorService.retrieveKnowledgeBaseFromGuvnor(parameters.getPackageName());
-
-        // Run the test as indicated.
-        StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
         final MetricsCollector collector = new MetricsCollector(metricsService, parameters);
-        collector.addSession(ksession);
         collector.startTest();
+        for (final ProcessIndicator indicator : parameters.getIndicators()) {
+            // If found, use a knowledge builder with corresponding change set to create a knowledge base.
+            final KnowledgeBase kbase = guvnorService.retrieveKnowledgeBaseFromGuvnor(indicator.getPackageName());
 
-        for (int index = 0; index < parameters.getNumberOfInstances(); ++index) {
-            if (parameters.isRunInIndividualKnowledgeSession()) {
-                ksession = kbase.newStatefulKnowledgeSession();
-                collector.addSession(ksession);
-            }
-            if (parameters.isStartInParallel()) {
-                runner.runAsync(ksession, parameters.getProcessId(), parameters.isRunInIndividualKnowledgeSession());
-            } else {
-                runner.runSync(ksession, parameters.getProcessId(), parameters.isRunInIndividualKnowledgeSession());
+            // Run the test as indicated.
+            StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
+            collector.addSession(ksession);
+
+            for (int index = 0; index < indicator.getNumberOfInstances(); ++index) {
+                if (parameters.isRunInIndividualKnowledgeSession()) {
+                    ksession = kbase.newStatefulKnowledgeSession();
+                    collector.addSession(ksession);
+                }
+                if (parameters.isStartInParallel()) {
+                    runner.runAsync(ksession, indicator.getProcessId(), parameters.isRunInIndividualKnowledgeSession());
+                } else {
+                    runner.runSync(ksession, indicator.getProcessId(), parameters.isRunInIndividualKnowledgeSession());
+                }
             }
         }
 
