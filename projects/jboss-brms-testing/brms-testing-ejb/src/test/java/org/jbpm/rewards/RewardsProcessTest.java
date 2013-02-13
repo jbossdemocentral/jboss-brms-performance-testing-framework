@@ -12,7 +12,6 @@ import org.drools.builder.ResourceType;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.process.ProcessInstance;
 import org.jbpm.process.instance.impl.demo.SystemOutWorkItemHandler;
-import org.jbpm.process.workitem.wsht.SyncWSHumanTaskHandler;
 import org.jbpm.task.AccessType;
 import org.jbpm.task.TaskService;
 import org.jbpm.task.query.TaskSummary;
@@ -59,13 +58,7 @@ public class RewardsProcessTest extends JbpmJUnitTestCase {
         ksession = createKnowledgeSession(kbase);
         taskService = getTaskService(ksession);
 
-        // Register human task work item.
-        final SyncWSHumanTaskHandler humanTaskHandler = new SyncWSHumanTaskHandler(taskService, ksession);
-        humanTaskHandler.setLocal(true);
-        humanTaskHandler.connect();
-        ksession.getWorkItemManager().registerWorkItemHandler("Human Task", humanTaskHandler);
-
-        // Register other (default!) work items.
+        // Register (default!) work items for non-task items.
         ksession.getWorkItemManager().registerWorkItemHandler("Log", new SystemOutWorkItemHandler());
         ksession.getWorkItemManager().registerWorkItemHandler("Email", new SystemOutWorkItemHandler());
     }

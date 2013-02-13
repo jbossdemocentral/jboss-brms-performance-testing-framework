@@ -3,15 +3,17 @@
     xmlns:c="http://java.sun.com/jsp/jstl/core" template="/WEB-INF/templates/layout.xhtml">
 
     <ui:define name="content">
-        <h:form>
-            <rich:panel style="width:400px;">
+        <rich:panel>
+            <h:form>
                 <h:outputText value="Choose Guvnor package: " />
-                <h:selectOneMenu value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.packageSelected}">
+                <h:selectOneMenu value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.selectPackage}">
                     <f:selectItems value="#{testerBean.packageList}" />
-                    <a4j:ajax event="valueChange" render="processOverview" execute="@this" />
+                    <a4j:ajax event="valueChange" render="processOverview" execute="@form" />
                 </h:selectOneMenu>
+            </h:form>
+            <h:form>
                 <rich:extendedDataTable id="processOverview" value="#{testerBean.processes}" var="process" noDataLabel="No processes available for package...">
-                    <rich:column width="300px">
+                    <rich:column width="551px">
                         <f:facet name="header">
                             <h:outputText value="Process" />
                         </f:facet>
@@ -21,12 +23,16 @@
                         <f:facet name="header">
                             <h:outputText value="include?" />
                         </f:facet>
-                        <h:selectBooleanCheckbox value="true" style="text-align: center;" valueChangeListener="#{testerBean.processSelected}" />
+                        <h:selectBooleanCheckbox value="true" style="text-align: center;" valueChangeListener="#{testerBean.selectProcess}">
+                            <a4j:ajax />
+                        </h:selectBooleanCheckbox>
                         <h:inputHidden value="#{process}" />
                     </rich:column>
                 </rich:extendedDataTable>
-            </rich:panel>
-            <rich:panel>
+            </h:form>
+        </rich:panel>
+        <rich:panel>
+            <h:form>
                 <p>
                     <h:outputLabel value="Number of process instances to start:" for="number" />
                     <rich:inputNumberSlider id="number" value="#{testerBean.numberOfInstances}" minValue="1" maxValue="1000" />
@@ -41,8 +47,8 @@
                 </p>
                 <a4j:commandButton value="Run process(es)!" execute="@form" action="#{testerBean.startProcessInstance}"
                     disabled="empty #{testerBean.selectedPackage} or empty #{testerBean.selectedProcess}" />
-            </rich:panel>
-        </h:form>
+            </h:form>
+        </rich:panel>
     </ui:define>
 
 </ui:composition>

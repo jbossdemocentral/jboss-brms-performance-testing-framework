@@ -7,6 +7,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -37,7 +38,7 @@ public class Metrics extends PersistentObject {
     private Boolean processesRunInIndividualKnowledgeSession;
 
     /** The packages used in the test run. */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Valid
     private Set<MeasuredPackage> packages;
 

@@ -24,7 +24,9 @@ public class ProcessEventListener extends DefaultProcessEventListener {
     public void beforeProcessStarted(final ProcessStartedEvent event) {
         // Set the event in the corresponding process instance.
         metricsService.setProcessInstanceStartTime(metricsId, event.getProcessInstance().getProcess().getPackageName(), event.getProcessInstance().getProcess()
-                .getId(), event.getProcessInstance().getId());
+                .getId(), event.getProcessInstance().getId()
+        // , ((StatefulKnowledgeSession) ((RuleFlowProcessInstance) event.getProcessInstance()).getKnowledgeRuntime()).getId()
+                );
     }
 
     @Override

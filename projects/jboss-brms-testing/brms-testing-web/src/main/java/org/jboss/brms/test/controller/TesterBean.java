@@ -30,8 +30,6 @@ public class TesterBean implements Serializable {
     /** Serial version ID. */
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOGGER = Logger.getLogger(TesterBean.class);
-
     private static final String GUVNOR_API_PACKAGES_PATH = "/packages";
     private static final String GUVNOR_API_ASSETS_PATH = GUVNOR_API_PACKAGES_PATH + "/{0}/assets";
     private static final String GUVNOR_API_BPMN_SOURCE_PATH = GUVNOR_API_ASSETS_PATH + "/{1}/source";
@@ -81,7 +79,7 @@ public class TesterBean implements Serializable {
         this.selectedPackage = selectedPackage;
     }
 
-    public void packageSelected(final ValueChangeEvent evt) {
+    public void selectPackage(final ValueChangeEvent evt) {
         log.info("Value of new selected package: " + evt.getNewValue());
         selectedPackage = (String) evt.getNewValue();
         getGuvnorAssets();
@@ -89,7 +87,7 @@ public class TesterBean implements Serializable {
 
     private void getGuvnorAssets() {
         if (StringUtils.isBlank(selectedPackage)) {
-            LOGGER.debug("No package selected, so no assets retrieved.");
+            log.debug("No package selected, so no assets retrieved.");
             return;
         }
 
@@ -124,7 +122,7 @@ public class TesterBean implements Serializable {
         return processList;
     }
 
-    public void processSelected(final ValueChangeEvent evt) {
+    public void selectProcess(final ValueChangeEvent evt) {
         String process = null;
         for (final UIComponent comp : evt.getComponent().getParent().getChildren()) {
             if (comp instanceof HtmlInputHidden) {
@@ -170,15 +168,24 @@ public class TesterBean implements Serializable {
     }
 
     public void startProcessInstance() {
+        if (StringUtils.isBlank(getSelectedPackage())) {
+            log.warn("No package selected - not running process(es).");
+            return;
+        }
+        if (StringUtils.isBlank(getSelectedProcess())) {
+            log.warn("No process selected - not running process(es).");
+            return;
+        }
+
         final ProcessStartParameters parameters = new ProcessStartParameters();
         parameters.setPackageName(getSelectedPackage());
-        parameters.setProcessId(selectedProcess);
+        parameters.setProcessId(getSelectedProcess());
         parameters.setNumberOfInstances(getNumberOfInstances());
         parameters.setRunInIndividualKnowledgeSession(isRunInIndividualKnowledgeSession());
         parameters.setStartInParallel(isStartInParallel());
         final Metrics metrics = processService.runProcesses(parameters);
 
         // Temp output:
-        LOGGER.info(metrics.printAll());
+        log.info(metrics.printAll());
     }
 }

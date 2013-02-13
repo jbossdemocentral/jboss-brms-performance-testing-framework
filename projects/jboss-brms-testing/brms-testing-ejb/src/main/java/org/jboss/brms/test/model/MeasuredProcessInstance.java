@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -51,12 +52,12 @@ public class MeasuredProcessInstance extends PersistentObject {
     private Integer numberOfNodesVisited;
 
     /** The rules used for this instance. */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Valid
     private Set<MeasuredRule> rules;
 
     /** The Human Tasks used for this instance. */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Valid
     private Set<MeasuredHumanTask> humanTasks;
 

@@ -39,6 +39,11 @@
             <artifactId>jbpm-flow</artifactId>
             <version>${brms-version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jbpm</groupId>
+            <artifactId>jbpm-human-task</artifactId>
+            <version>${brms-version}</version>
+        </dependency>
 
         <!-- Using provided scope as APIs are included in EAP 6. -->
         <dependency>

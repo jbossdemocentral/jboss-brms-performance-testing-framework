@@ -3,6 +3,8 @@ package org.jboss.brms.test.service;
 import java.util.Date;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -26,6 +28,7 @@ import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.model.PersistentObject_;
 
 @Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 public class MetricsService {
     @Inject
     private EntityManager em;
@@ -256,6 +259,7 @@ public class MetricsService {
         final MeasuredProcessInstance processInstance = em.merge(new MeasuredProcessInstance(metricsId, processId, processInstanceId));
         process.addInstance(processInstance);
         processInstance.setStartingTime(new Date());
+        log.info("Instance " + processInstanceId + " started at " + processInstance.getStartingTime());
     }
 
     public void setProcessInstanceEndTime(final Long metricsId, final String processId, final long processInstanceId) {
