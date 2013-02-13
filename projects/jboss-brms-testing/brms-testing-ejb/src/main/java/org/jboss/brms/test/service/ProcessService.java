@@ -90,6 +90,7 @@ public class ProcessService {
         return collector.getMetrics();
     }
 
+    /* This breaks at the part that retrieves the tasks: list has size 0. */
     public Metrics runRewardsProcess() {
         final KnowledgeBase kbase = guvnorService.retrieveKnowledgeBaseFromGuvnor("org.jbpm.rewards");
         final StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
@@ -110,7 +111,7 @@ public class ProcessService {
     private TaskClient getTaskClient(final StatefulKnowledgeSession ksession) {
         final TaskClient client = new TaskClient(new HornetQTaskClientConnector("HornetQConnector" + UUID.randomUUID(), new HornetQTaskClientHandler(
                 SystemEventListenerFactory.getSystemEventListener())));
-        client.connect("127.0.0.1", 5446);
+        client.connect("127.0.0.1", 5153);
         final CommandBasedHornetQWSHumanTaskHandler handler = new CommandBasedHornetQWSHumanTaskHandler(ksession);
         handler.setClient(client);
         handler.connect();
