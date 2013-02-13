@@ -259,11 +259,14 @@ public class MetricsService {
         final MeasuredProcessInstance processInstance = em.merge(new MeasuredProcessInstance(metricsId, processId, processInstanceId));
         process.addInstance(processInstance);
         processInstance.setStartingTime(new Date());
-        log.info("Instance " + processInstanceId + " started at " + processInstance.getStartingTime());
     }
 
     public void setProcessInstanceEndTime(final Long metricsId, final String processId, final long processInstanceId) {
         findProcessInstance(metricsId, processId, processInstanceId).setEndingTime(new Date());
+    }
+
+    public void addNodeVisited(final Long metricsId, final String processId, final long processInstanceId) {
+        findProcessInstance(metricsId, processId, processInstanceId).increaseNumberOfNodesVisited();
     }
 
     public void setRuleStartTime(final Long metricsId, final String processId, final long processInstanceId, final String ruleFlowGroup, final String nodeId) {

@@ -52,6 +52,8 @@ public class ProcessEventListener extends DefaultProcessEventListener {
 
     @Override
     public void beforeNodeLeft(final ProcessNodeLeftEvent event) {
+        metricsService.addNodeVisited(metricsId, event.getProcessInstance().getProcess().getId(), event.getProcessInstance().getId());
+
         if (event.getNodeInstance() instanceof RuleSetNodeInstance) {
             // Set the event in the corresponding rule.
             final RuleSetNode rsn = (RuleSetNode) ((RuleSetNodeInstance) event.getNodeInstance()).getNode();
