@@ -17,15 +17,22 @@ import javax.validation.constraints.NotNull;
 import org.jboss.brms.test.service.MetricsService;
 
 /**
- * Metrics for a single test run.
+ * Metrics for a single test run on a single JVM.
  */
 @Entity
 public class Metrics extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
 
-    /** Number of machines used to run the processes. */
+    /** JVM identification used to run the processes on, host name part. */
     @NotNull
+    private String hostName;
+
+    /** JVM identification used to run the processes on, process ID part. */
+    @NotNull
+    private String pid;
+
+    /** The number of machines used in the test run. */
     private Integer numberOfMachines;
 
     /** If multiple machines were used, was load balancing applied? */
@@ -37,10 +44,10 @@ public class Metrics extends PersistentObject {
     /** Are the process instances each started in their own stateful knowledge session? */
     private Boolean processesRunInIndividualKnowledgeSession;
 
-    /** The packages used in the test run. */
+    /** The processes used in the test run. */
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Valid
-    private Set<MeasuredPackage> packages;
+    private Set<MeasuredProcess> processes;
 
     /** The moment the test run began. */
     @Temporal(TemporalType.TIMESTAMP)
@@ -57,8 +64,12 @@ public class Metrics extends PersistentObject {
     /**
      * Parameterized constructor, for use by the {@link MetricsService}.
      * 
+     * @param hostName
+     *            JVM identification used to run the processes on, host name part.
+     * @param pid
+     *            JVM identification used to run the processes on, process ID part.
      * @param numberOfMachines
-     *            Number of machines used to run the processes.
+     *            The number of machines used in the test run.
      * @param loadBalancingUsed
      *            If multiple machines were used, was load balancing applied?
      * @param processesStartedInParallel
@@ -66,12 +77,30 @@ public class Metrics extends PersistentObject {
      * @param processesRunInIndividualKnowledgeSession
      *            Are the process instances each started in their own stateful knowledge session?
      */
-    public Metrics(final Integer numberOfMachines, final Boolean loadBalancingUsed, final Boolean processesStartedInParallel,
-            final Boolean processesRunInIndividualKnowledgeSession) {
+    public Metrics(final String hostName, final String pid, final Integer numberOfMachines, final Boolean loadBalancingUsed,
+            final Boolean processesStartedInParallel, final Boolean processesRunInIndividualKnowledgeSession) {
+        this.hostName = hostName;
+        this.pid = pid;
         this.numberOfMachines = numberOfMachines;
         this.loadBalancingUsed = loadBalancingUsed;
         this.processesStartedInParallel = processesStartedInParallel;
         this.processesRunInIndividualKnowledgeSession = processesRunInIndividualKnowledgeSession;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    void setHostName(final String hostName) {
+        this.hostName = hostName;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    void setPid(final String pid) {
+        this.pid = pid;
     }
 
     public Integer getNumberOfMachines() {
@@ -106,19 +135,19 @@ public class Metrics extends PersistentObject {
         this.processesRunInIndividualKnowledgeSession = processesRunInIndividualKnowledgeSession;
     }
 
-    public Set<MeasuredPackage> getPackages() {
-        if (packages == null) {
-            packages = new HashSet<MeasuredPackage>();
+    public Set<MeasuredProcess> getProcesses() {
+        if (processes == null) {
+            processes = new HashSet<MeasuredProcess>();
         }
-        return packages;
+        return processes;
     }
 
-    void setPackages(final Set<MeasuredPackage> packages) {
-        this.packages = packages;
+    void setProcesses(final Set<MeasuredProcess> processes) {
+        this.processes = processes;
     }
 
-    public boolean addPackage(final MeasuredPackage pakkage) {
-        return getPackages().add(pakkage);
+    public boolean addProcess(final MeasuredProcess process) {
+        return getProcesses().add(process);
     }
 
     public Date getStartingTime() {
@@ -146,36 +175,33 @@ public class Metrics extends PersistentObject {
     }
 
     public String print() {
-        final StringBuilder sb = new StringBuilder().append("\nMetrics:\n * Number of machines: ").append(numberOfMachines)
-                .append("\n * Was load balancing used: ").append(loadBalancingUsed).append("\n * Were processes started in parallel: ")
-                .append(processesStartedInParallel).append("\n * Were processes run in an individual knowledge session: ")
-                .append(processesRunInIndividualKnowledgeSession);
+        final StringBuilder sb = new StringBuilder().append("\nMetrics:\n\t* Host name: ").append(hostName).append("\n\t* Process ID: ").append(pid)
+                .append("\n\t* Number of machines in test: ").append(numberOfMachines).append("\n\t* Was load balancing used: ").append(loadBalancingUsed)
+                .append("\n\t* Were processes started in parallel: ").append(processesStartedInParallel)
+                .append("\n\t* Were processes run in an individual knowledge session: ").append(processesRunInIndividualKnowledgeSession);
         final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         if (endingTime != null) {
-            sb.append("\n\n * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+            sb.append("\n\n\t* Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
                     .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
         } else if (startingTime != null) {
-            sb.append("\n\n * Test started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+            sb.append("\n\n\t* Test started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
         } else {
-            sb.append("\n\n * Test not started yet.");
+            sb.append("\n\n\t* Test not started yet.");
         }
         return sb.toString();
     }
 
     public String printAll() {
         final StringBuilder sb = new StringBuilder(print());
-        for (final MeasuredPackage mpak : getPackages()) {
-            sb.append(mpak.print());
-            for (final MeasuredProcess mp : mpak.getProcesses()) {
-                sb.append(mp.print());
-                for (final MeasuredProcessInstance mpi : mp.getInstances()) {
-                    sb.append(mpi.print());
-                    for (final MeasuredRule mr : mpi.getRules()) {
-                        sb.append(mr.print());
-                    }
-                    for (final MeasuredHumanTask mht : mpi.getHumanTasks()) {
-                        sb.append(mht.print());
-                    }
+        for (final MeasuredProcess mp : getProcesses()) {
+            sb.append(mp.print());
+            for (final MeasuredProcessInstance mpi : mp.getInstances()) {
+                sb.append(mpi.print());
+                for (final MeasuredRule mr : mpi.getRules()) {
+                    sb.append(mr.print());
+                }
+                for (final MeasuredHumanTask mht : mpi.getHumanTasks()) {
+                    sb.append(mht.print());
                 }
             }
         }
@@ -202,9 +228,9 @@ public class Metrics extends PersistentObject {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("Metrics [numberOfMachines=").append(numberOfMachines).append(", loadBalancingUsed=").append(loadBalancingUsed)
-                .append(", processesStartedInParallel=").append(processesStartedInParallel).append(", processesRunInIndividualKnowledgeSession=")
-                .append(processesRunInIndividualKnowledgeSession).append(", startingTime=").append(startingTime).append(", endingTime=").append(endingTime)
-                .append("]").toString();
+        return new StringBuilder().append("Metrics [hostName=").append(hostName).append(", pid=").append(pid).append(", numberOfMachines=")
+                .append(numberOfMachines).append(", loadBalancingUsed=").append(loadBalancingUsed).append(", processesStartedInParallel=")
+                .append(processesStartedInParallel).append(", processesRunInIndividualKnowledgeSession=").append(processesRunInIndividualKnowledgeSession)
+                .append(", startingTime=").append(startingTime).append(", endingTime=").append(endingTime).append("]").toString();
     }
 }

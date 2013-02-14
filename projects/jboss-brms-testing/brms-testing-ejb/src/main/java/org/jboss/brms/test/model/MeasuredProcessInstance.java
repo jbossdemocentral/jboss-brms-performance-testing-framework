@@ -6,14 +6,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.jboss.brms.test.service.MetricsService;
@@ -26,20 +25,10 @@ public class MeasuredProcessInstance extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
 
-    /** The ID of the {@link Metrics} object this process instance belongs to. */
-    @Column(nullable = false, updatable = false)
-    @NotNull
-    private Long metricsId;
-
-    /** The ID of the process this is an instance of. */
-    @Column(nullable = false, updatable = false)
-    @NotNull
-    private String processId;
-
-    /** The ID of this process instance. */
-    @Column(nullable = false, updatable = false)
-    @NotNull
-    private Long processInstanceId;
+    /** Data to uniquely identify a process instance. */
+    @Embedded
+    @Valid
+    private ProcessInstanceIdentifier identifier;
 
     /** The moment the instance was started. */
     @Temporal(TemporalType.TIMESTAMP)
@@ -68,42 +57,21 @@ public class MeasuredProcessInstance extends PersistentObject {
     /**
      * Parameterized constructor, for use by the {@link MetricsService}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this package belongs to.
-     * @param processId
-     *            The ID of the process this is an instance of.
-     * @param processInstanceId
-     *            The ID of the process instance for which the metrics are kept in this object.
+     * @param identifier
+     *            Data to uniquely identify a process instance.
      */
-    public MeasuredProcessInstance(final Long metricsId, final String processId, final Long processInstanceId) {
-        this.metricsId = metricsId;
-        setProcessId(processId);
-        this.processInstanceId = processInstanceId;
+    public MeasuredProcessInstance(final ProcessInstanceIdentifier identifier) {
+        this.identifier = new ProcessInstanceIdentifier(identifier.getMetricsId(), identifier.getPackageName(), identifier.getProcessId(),
+                identifier.getKsessionId(), identifier.getProcessInstanceId());
         numberOfNodesVisited = Integer.valueOf(0);
     }
 
-    public Long getMetricsId() {
-        return metricsId;
+    public ProcessInstanceIdentifier getIdentifier() {
+        return identifier;
     }
 
-    void setMetricsId(final Long metricsId) {
-        this.metricsId = metricsId;
-    }
-
-    public String getProcessId() {
-        return processId;
-    }
-
-    void setProcessId(final String processId) {
-        this.processId = processId;
-    }
-
-    public Long getProcessInstanceId() {
-        return processInstanceId;
-    }
-
-    void setProcessInstanceId(final Long processInstanceId) {
-        this.processInstanceId = processInstanceId;
+    void setIdentifier(final ProcessInstanceIdentifier identifier) {
+        this.identifier = identifier;
     }
 
     public Date getStartingTime() {
@@ -176,27 +144,23 @@ public class MeasuredProcessInstance extends PersistentObject {
     }
 
     public String print() {
-        final StringBuilder sb = new StringBuilder().append("\n\n   MeasuredProcessInstance:\n    * Process instance ID: ").append(processInstanceId);
-        sb.append("\n    * Number of nodes visited = ").append(numberOfNodesVisited);
+        final StringBuilder sb = new StringBuilder().append("\n\n\t\t\tMeasuredProcessInstance:").append(identifier.print())
+                .append("\n\t\t\t* Number of nodes visited = ").append(numberOfNodesVisited);
         final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         if (endingTime != null) {
-            sb.append("\n    * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+            sb.append("\n\t\t\t* Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
                     .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
         } else if (startingTime != null) {
-            sb.append("\n    * Instance started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+            sb.append("\n\t\t\t* Instance started at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
         } else {
-            sb.append("\n    * Instance not started yet.");
+            sb.append("\n\t\t\t* Instance not started yet.");
         }
         return sb.toString();
     }
 
     @Override
     public int hashCode() {
-        int result = HASH_SEED;
-        result = (PRIME * result) + ObjectUtils.hashCode(metricsId);
-        result = (PRIME * result) + ObjectUtils.hashCode(processId);
-        result = (PRIME * result) + ObjectUtils.hashCode(processInstanceId);
-        return result;
+        return (PRIME * HASH_SEED) + ObjectUtils.hashCode(identifier);
     }
 
     @Override
@@ -210,13 +174,12 @@ public class MeasuredProcessInstance extends PersistentObject {
         }
 
         final MeasuredProcessInstance other = (MeasuredProcessInstance) obj;
-        return ObjectUtils.equals(metricsId, other.getMetricsId()) && ObjectUtils.equals(processId, other.getProcessId())
-                && ObjectUtils.equals(processInstanceId, other.getProcessInstanceId());
+        return ObjectUtils.equals(identifier, other.getIdentifier());
     }
 
     @Override
     public String toString() {
-        return new StringBuilder().append("MeasuredProcessInstance [processInstanceId=").append(processInstanceId).append(", startingTime=")
-                .append(startingTime).append(", endingTime=").append(endingTime).append("]").toString();
+        return new StringBuilder().append("MeasuredProcessInstance [").append(identifier).append(", startingTime=").append(startingTime)
+                .append(", endingTime=").append(endingTime).append("]").toString();
     }
 }

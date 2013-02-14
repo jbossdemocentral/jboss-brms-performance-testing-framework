@@ -4,15 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.hibernate.validator.constraints.NotBlank;
 import org.jboss.brms.test.service.MetricsService;
 
 /**
@@ -23,15 +21,10 @@ public class MeasuredProcess extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
 
-    /** The ID of the {@link Metrics} object this process belongs to. */
-    @Column(nullable = false, updatable = false)
-    @NotNull
-    private Long metricsId;
-
-    /** The name of the process, as known in Guvnor. */
-    @Column(nullable = false, updatable = false)
-    @NotBlank
-    private String processId;
+    /** Data to uniquely identify a process. */
+    @Embedded
+    @Valid
+    private ProcessIdentifier identifier;
 
     /** The instances started from this process (definition). */
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -45,30 +38,19 @@ public class MeasuredProcess extends PersistentObject {
     /**
      * Parameterized constructor, for use by the {@link MetricsService}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this package belongs to.
-     * @param id
-     *            The name of the process.
+     * @param identifier
+     *            Data to uniquely identify a process.
      */
-    public MeasuredProcess(final Long metricsId, final String id) {
-        this.metricsId = metricsId;
-        processId = id;
+    public MeasuredProcess(final ProcessIdentifier identifier) {
+        this.identifier = identifier;
     }
 
-    public Long getMetricsId() {
-        return metricsId;
+    public ProcessIdentifier getIdentifier() {
+        return identifier;
     }
 
-    void setMetricsId(final Long metricsId) {
-        this.metricsId = metricsId;
-    }
-
-    public String getProcessId() {
-        return processId;
-    }
-
-    void setProcessId(final String processId) {
-        this.processId = processId;
+    void setIdentifier(final ProcessIdentifier identifier) {
+        this.identifier = identifier;
     }
 
     public Set<MeasuredProcessInstance> getInstances() {
@@ -87,16 +69,13 @@ public class MeasuredProcess extends PersistentObject {
     }
 
     public String print() {
-        return new StringBuilder().append("\n\n  MeasuredProcess:\n   * Process ID: ").append(processId).append("\n   * Number of times instantiated: ")
+        return new StringBuilder().append("\n\n\t\tMeasuredProcess:").append(identifier.print()).append("\n\t\t* Number of times instantiated: ")
                 .append(getInstances().size()).toString();
     }
 
     @Override
     public int hashCode() {
-        int result = HASH_SEED;
-        result = (PRIME * result) + ObjectUtils.hashCode(metricsId);
-        result = (PRIME * result) + ObjectUtils.hashCode(processId);
-        return result;
+        return (PRIME * HASH_SEED) + ObjectUtils.hashCode(identifier);
     }
 
     @Override
@@ -110,11 +89,11 @@ public class MeasuredProcess extends PersistentObject {
         }
 
         final MeasuredProcess other = (MeasuredProcess) obj;
-        return ObjectUtils.equals(metricsId, other.getMetricsId()) && ObjectUtils.equals(processId, other.getProcessId());
+        return ObjectUtils.equals(identifier, other.getIdentifier());
     }
 
     @Override
     public String toString() {
-        return new StringBuilder().append("MeasuredProcess [processId=").append(processId).append("]").toString();
+        return new StringBuilder().append("MeasuredProcess [").append(identifier).append("]").toString();
     }
 }

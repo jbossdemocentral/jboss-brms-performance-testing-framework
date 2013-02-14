@@ -1,5 +1,6 @@
 package org.jboss.brms.test.service;
 
+import java.lang.management.ManagementFactory;
 import java.util.Date;
 
 import javax.ejb.Stateless;
@@ -16,8 +17,6 @@ import javax.persistence.criteria.Root;
 import org.apache.log4j.Logger;
 import org.jboss.brms.test.model.MeasuredHumanTask;
 import org.jboss.brms.test.model.MeasuredHumanTask_;
-import org.jboss.brms.test.model.MeasuredPackage;
-import org.jboss.brms.test.model.MeasuredPackage_;
 import org.jboss.brms.test.model.MeasuredProcess;
 import org.jboss.brms.test.model.MeasuredProcessInstance;
 import org.jboss.brms.test.model.MeasuredProcessInstance_;
@@ -26,6 +25,10 @@ import org.jboss.brms.test.model.MeasuredRule;
 import org.jboss.brms.test.model.MeasuredRule_;
 import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.model.PersistentObject_;
+import org.jboss.brms.test.model.ProcessIdentifier;
+import org.jboss.brms.test.model.ProcessIdentifier_;
+import org.jboss.brms.test.model.ProcessInstanceIdentifier;
+import org.jboss.brms.test.model.ProcessInstanceIdentifier_;
 
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -51,7 +54,10 @@ public class MetricsService {
      */
     public Metrics createMetrics(final Integer numberOfMachines, final Boolean loadBalancingUsed, final Boolean processesStartedInParallel,
             final Boolean processesRunInIndividualKnowledgeSession) {
-        return em.merge(new Metrics(numberOfMachines, loadBalancingUsed, processesStartedInParallel, processesRunInIndividualKnowledgeSession));
+        final String runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+        final String hostName = runtimeName.substring(runtimeName.indexOf("@") + 1);
+        final String pid = runtimeName.substring(0, runtimeName.indexOf("@"));
+        return em.merge(new Metrics(hostName, pid, numberOfMachines, loadBalancingUsed, processesStartedInParallel, processesRunInIndividualKnowledgeSession));
     }
 
     /**
@@ -78,51 +84,26 @@ public class MetricsService {
     }
 
     /**
-     * Find a {@link MeasuredPackage}.
-     * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this package belongs to.
-     * @param packageName
-     *            The name of the required package.
-     * @return The intended package, or <code>null</code> if it was not available.
-     */
-    public MeasuredPackage findPackage(final Long metricsId, final String packageName) {
-        final CriteriaBuilder cb = em.getCriteriaBuilder();
-        final CriteriaQuery<MeasuredPackage> cq = cb.createQuery(MeasuredPackage.class);
-        final Root<MeasuredPackage> packageRoot = cq.from(MeasuredPackage.class);
-        cq.where(cb.equal(packageRoot.get(MeasuredPackage_.metricsId), metricsId), cb.equal(packageRoot.get(MeasuredPackage_.packageName), packageName));
-        MeasuredPackage pakkage = null;
-        try {
-            pakkage = em.createQuery(cq).getSingleResult();
-        } catch (final NoResultException nrEx) {
-            // Leave NULL, wasn't available.
-        } catch (final NonUniqueResultException nurEx) {
-            log.error("Multiple packages with name " + packageName + " under one Metrics found, unexpectedly.", nurEx);
-        }
-        return pakkage;
-    }
-
-    /**
      * Find a {@link MeasuredProcess}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this process belongs to.
-     * @param processId
-     *            The ID of the required process.
+     * @param identifier
+     *            The data to uniquely identify a process.
      * @return The intended process, or <code>null</code> if it was not available.
      */
-    public MeasuredProcess findProcess(final Long metricsId, final String processId) {
+    public MeasuredProcess findProcess(final ProcessIdentifier identifier) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<MeasuredProcess> cq = cb.createQuery(MeasuredProcess.class);
         final Root<MeasuredProcess> processRoot = cq.from(MeasuredProcess.class);
-        cq.where(cb.equal(processRoot.get(MeasuredProcess_.metricsId), metricsId), cb.equal(processRoot.get(MeasuredProcess_.processId), processId));
+        cq.where(cb.equal(processRoot.get(MeasuredProcess_.identifier).get(ProcessIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(processRoot.get(MeasuredProcess_.identifier).get(ProcessIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(processRoot.get(MeasuredProcess_.identifier).get(ProcessIdentifier_.processId), identifier.getProcessId()));
         MeasuredProcess process = null;
         try {
             process = em.createQuery(cq).getSingleResult();
         } catch (final NoResultException nrEx) {
             // Leave NULL, wasn't available.
         } catch (final NonUniqueResultException nurEx) {
-            log.error("Multiple processes with ID " + processId + " under one Metrics found, unexpectedly.", nurEx);
+            log.error("Multiple processes for indentity " + identifier + " found, unexpectedly.", nurEx);
         }
         return process;
     }
@@ -130,28 +111,28 @@ public class MetricsService {
     /**
      * Find a {@link MeasuredProcessInstance}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this process instance belongs to.
-     * @param processId
-     *            The ID of the process from which a specific instance is required.
-     * @param processInstanceId
-     *            The ID of the required process instance.
+     * @param identifier
+     *            The data to uniquely identify a process.
      * @return The intended process instance, or <code>null</code> if it was not available.
      */
-    public MeasuredProcessInstance findProcessInstance(final Long metricsId, final String processId, final Long processInstanceId) {
+    public MeasuredProcessInstance findProcessInstance(final ProcessInstanceIdentifier identifier) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<MeasuredProcessInstance> cq = cb.createQuery(MeasuredProcessInstance.class);
         final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
-        cq.where(cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.metricsId), metricsId),
-                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.processId), processId),
-                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.processInstanceId), processInstanceId));
+        cq.where(
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.processId), identifier.getProcessId()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.ksessionId), identifier.getKsessionId()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.processInstanceId),
+                        identifier.getProcessInstanceId()));
         MeasuredProcessInstance processInstance = null;
         try {
             processInstance = em.createQuery(cq).getSingleResult();
         } catch (final NoResultException nrEx) {
             // Leave NULL, wasn't available.
         } catch (final NonUniqueResultException nurEx) {
-            log.error("Multiple process instances with ID " + processInstanceId + " under one Metrics found, unexpectedly.", nurEx);
+            log.error("Multiple process instances with identity " + identifier + " found, unexpectedly.", nurEx);
         }
         return processInstance;
     }
@@ -235,46 +216,47 @@ public class MetricsService {
     /**
      * Set the time at which a process instance starts.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} for the test.
-     * @param processId
-     *            The ID of the process for which an instance is started.
-     * @param processInstanceId
-     *            The ID of the instance itself.
-     * @param packageName
+     * @param identifier
+     *            Data to uniquely identify the process instance.
      */
-    public void setProcessInstanceStartTime(final Long metricsId, final String packageName, final String processId, final long processInstanceId) {
-        MeasuredProcess process = findProcess(metricsId, processId);
+    public void setProcessInstanceStartTime(final ProcessInstanceIdentifier identifier) {
+        MeasuredProcess process = findProcess(identifier.toProcessIdentifier());
         if (process == null) {
             // First instance of this process, so create it.
-            MeasuredPackage pakkage = findPackage(metricsId, packageName);
-            if (pakkage == null) {
-                // Even first process in the package, so create that too.
-                pakkage = em.merge(new MeasuredPackage(metricsId, packageName));
-                findMetricsById(metricsId).addPackage(pakkage);
-            }
-            process = em.merge(new MeasuredProcess(metricsId, processId));
-            pakkage.addProcess(process);
+            process = em.merge(new MeasuredProcess(identifier.toProcessIdentifier()));
+            findMetricsById(identifier.getMetricsId()).addProcess(process);
         }
-        final MeasuredProcessInstance processInstance = em.merge(new MeasuredProcessInstance(metricsId, processId, processInstanceId));
+        final MeasuredProcessInstance processInstance = em.merge(new MeasuredProcessInstance(identifier));
         process.addInstance(processInstance);
         processInstance.setStartingTime(new Date());
     }
 
-    public void setProcessInstanceEndTime(final Long metricsId, final String processId, final long processInstanceId) {
-        findProcessInstance(metricsId, processId, processInstanceId).setEndingTime(new Date());
+    /**
+     * Set the time at which a process instance ends.
+     * 
+     * @param identifier
+     *            Data to uniquely identify the process instance.
+     */
+    public void setProcessInstanceEndTime(final ProcessInstanceIdentifier identifier) {
+        findProcessInstance(identifier).setEndingTime(new Date());
     }
 
-    public void addNodeVisited(final Long metricsId, final String processId, final long processInstanceId) {
-        findProcessInstance(metricsId, processId, processInstanceId).increaseNumberOfNodesVisited();
+    /**
+     * Increase the number of nodes visited by a process instance.
+     * 
+     * @param identifier
+     *            Data to uniquely identify the process instance.
+     */
+    public void addNodeVisited(final ProcessInstanceIdentifier identifier) {
+        findProcessInstance(identifier).increaseNumberOfNodesVisited();
     }
 
-    public void setRuleStartTime(final Long metricsId, final String processId, final long processInstanceId, final String ruleFlowGroup, final String nodeId) {
-        final MeasuredProcessInstance processInstance = findProcessInstance(metricsId, processId, processInstanceId);
+    public void setRuleStartTime(final ProcessInstanceIdentifier identifier, final String ruleFlowGroup, final String nodeId) {
+        final MeasuredProcessInstance processInstance = findProcessInstance(identifier);
         if (processInstance == null) {
-            throw new IllegalStateException("Rule started for process instance [" + processId + ", " + processInstanceId + "] that cannot be found.");
+            throw new IllegalStateException("Rule started for " + identifier + ", which cannot be found.");
         }
-        final MeasuredRule rule = em.merge(new MeasuredRule(metricsId, ruleFlowGroup, nodeId));
+        final MeasuredRule rule = em.merge(new MeasuredRule(identifier.getMetricsId(), ruleFlowGroup, nodeId));
         processInstance.addRule(rule);
         rule.setStartingTime(new Date());
     }
@@ -283,13 +265,12 @@ public class MetricsService {
         findRule(metricsId, ruleFlowGroup, nodeId).setEndingTime(new Date());
     }
 
-    public void setHumanTaskStartTime(final Long metricsId, final String processId, final long processInstanceId, final String taskName, final String groupId,
-            final String nodeId) {
-        final MeasuredProcessInstance processInstance = findProcessInstance(metricsId, processId, processInstanceId);
+    public void setHumanTaskStartTime(final ProcessInstanceIdentifier identifier, final String taskName, final String groupId, final String nodeId) {
+        final MeasuredProcessInstance processInstance = findProcessInstance(identifier);
         if (processInstance == null) {
-            throw new IllegalStateException("Human Task started for process instance [" + processId + ", " + processInstanceId + "] that cannot be found.");
+            throw new IllegalStateException("Human Task started for " + identifier + ", which cannot be found.");
         }
-        final MeasuredHumanTask task = em.merge(new MeasuredHumanTask(metricsId, taskName, groupId, nodeId));
+        final MeasuredHumanTask task = em.merge(new MeasuredHumanTask(identifier.getMetricsId(), taskName, groupId, nodeId));
         processInstance.addHumanTask(task);
         task.setStartingTime(new Date());
     }
