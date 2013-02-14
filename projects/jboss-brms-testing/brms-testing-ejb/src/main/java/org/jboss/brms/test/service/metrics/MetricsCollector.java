@@ -4,6 +4,7 @@ import org.drools.runtime.StatefulKnowledgeSession;
 import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.service.MetricsService;
 import org.jboss.brms.test.service.ProcessStartParameters;
+import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
 
 public class MetricsCollector {
     private final MetricsService metricsService;
@@ -45,6 +46,11 @@ public class MetricsCollector {
             metrics = metricsService.createMetrics(Integer.valueOf(1), Boolean.FALSE, Boolean.FALSE, Boolean.FALSE);
         }
         metricsId = metrics.getId();
+
+        // Create room for the instances under their corresponding process.
+        for (final ProcessIndicator indicator : parameters.getIndicators()) {
+            metricsService.createProcess(metricsId, indicator.getPackageName(), indicator.getProcessId());
+        }
 
         processEventListener = new ProcessEventListener(metricsService, metricsId);
     }

@@ -33,6 +33,8 @@ import org.jboss.brms.test.model.ProcessInstanceIdentifier_;
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 public class MetricsService {
+    private static Object LOCK = new Object();
+
     @Inject
     private EntityManager em;
 
@@ -58,6 +60,23 @@ public class MetricsService {
         final String hostName = runtimeName.substring(runtimeName.indexOf("@") + 1);
         final String pid = runtimeName.substring(0, runtimeName.indexOf("@"));
         return em.merge(new Metrics(hostName, pid, numberOfMachines, loadBalancingUsed, processesStartedInParallel, processesRunInIndividualKnowledgeSession));
+    }
+
+    /**
+     * Create a new {@link MeasuredProcess} object to collect data from runs by its instances in.
+     * 
+     * @param metricsId
+     *            ID of the containing {@link Metrics} object.
+     * @param packageName
+     *            The name of the package under which the process is kept in Guvnor.
+     * @param processId
+     *            The ID of the process.
+     * @return The freshly created (and persisted) {@link MeasuredProcess}.
+     */
+    public MeasuredProcess createProcess(final Long metricsId, final String packageName, final String processId) {
+        final MeasuredProcess process = em.merge(new MeasuredProcess(new ProcessIdentifier(metricsId, packageName, processId)));
+        findMetricsById(metricsId).addProcess(process);
+        return process;
     }
 
     /**
@@ -160,7 +179,7 @@ public class MetricsService {
         } catch (final NoResultException nrEx) {
             // Leave NULL, wasn't available.
         } catch (final NonUniqueResultException nurEx) {
-            log.error("Multiple process instances with ID " + ruleFlowGroup + " under one Metrics found, unexpectedly.", nurEx);
+            log.error("Multiple rules with ID " + ruleFlowGroup + " under one Metrics found, unexpectedly.", nurEx);
         }
         return rule;
     }
@@ -188,7 +207,7 @@ public class MetricsService {
         } catch (final NoResultException nrEx) {
             // Leave NULL, wasn't available.
         } catch (final NonUniqueResultException nurEx) {
-            log.error("Multiple process instances with ID " + taskName + " under one Metrics found, unexpectedly.", nurEx);
+            log.error("Multiple Human Tasks with ID " + taskName + " under one Metrics found, unexpectedly.", nurEx);
         }
         return task;
     }
@@ -220,14 +239,20 @@ public class MetricsService {
      *            Data to uniquely identify the process instance.
      */
     public void setProcessInstanceStartTime(final ProcessInstanceIdentifier identifier) {
-        MeasuredProcess process = findProcess(identifier.toProcessIdentifier());
-        if (process == null) {
-            // First instance of this process, so create it.
-            process = em.merge(new MeasuredProcess(identifier.toProcessIdentifier()));
-            findMetricsById(identifier.getMetricsId()).addProcess(process);
-        }
+        // First event, so create the instance.
         final MeasuredProcessInstance processInstance = em.merge(new MeasuredProcessInstance(identifier));
-        process.addInstance(processInstance);
+
+        // Add it to the originating definition.
+        synchronized (LOCK) { // Synchronized because concurrent instances will cause locking exceptions.
+            final MeasuredProcess process = findProcess(identifier.toProcessIdentifier());
+            if (process == null) {
+                throw new IllegalStateException("Instance started for process [" + identifier.toProcessIdentifier() + "], which cannot be found.");
+            }
+            process.addInstance(processInstance);
+            em.flush();
+        }
+
+        // Set the time.
         processInstance.setStartingTime(new Date());
     }
 
@@ -252,12 +277,17 @@ public class MetricsService {
     }
 
     public void setRuleStartTime(final ProcessInstanceIdentifier identifier, final String ruleFlowGroup, final String nodeId) {
+        // Create the rule (one for each call).
+        final MeasuredRule rule = em.merge(new MeasuredRule(identifier.getMetricsId(), ruleFlowGroup, nodeId));
+
+        // Add it to the corresponding process instance.
         final MeasuredProcessInstance processInstance = findProcessInstance(identifier);
         if (processInstance == null) {
-            throw new IllegalStateException("Rule started for " + identifier + ", which cannot be found.");
+            throw new IllegalStateException("Rule started for process instance [" + identifier + "], which cannot be found.");
         }
-        final MeasuredRule rule = em.merge(new MeasuredRule(identifier.getMetricsId(), ruleFlowGroup, nodeId));
         processInstance.addRule(rule);
+
+        // Set the time.
         rule.setStartingTime(new Date());
     }
 
@@ -266,12 +296,17 @@ public class MetricsService {
     }
 
     public void setHumanTaskStartTime(final ProcessInstanceIdentifier identifier, final String taskName, final String groupId, final String nodeId) {
+        // Create the task (one for each call).
+        final MeasuredHumanTask task = em.merge(new MeasuredHumanTask(identifier.getMetricsId(), taskName, groupId, nodeId));
+
+        // Add it to the corresponding process instance.
         final MeasuredProcessInstance processInstance = findProcessInstance(identifier);
         if (processInstance == null) {
-            throw new IllegalStateException("Human Task started for " + identifier + ", which cannot be found.");
+            throw new IllegalStateException("Human Task started for process instance [" + identifier + "], which cannot be found.");
         }
-        final MeasuredHumanTask task = em.merge(new MeasuredHumanTask(identifier.getMetricsId(), taskName, groupId, nodeId));
         processInstance.addHumanTask(task);
+
+        // Set the time.
         task.setStartingTime(new Date());
     }
 
