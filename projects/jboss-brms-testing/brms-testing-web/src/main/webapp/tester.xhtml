@@ -3,52 +3,49 @@
     xmlns:c="http://java.sun.com/jsp/jstl/core" template="/WEB-INF/templates/layout.xhtml">
 
     <ui:define name="content">
-        <rich:panel>
-            <h:form>
-                <h:outputText value="Choose Guvnor package: " />
-                <h:selectOneMenu value="#{testerBean.selectedPackage}" valueChangeListener="#{testerBean.selectPackage}">
-                    <f:selectItems value="#{testerBean.packageList}" />
-                    <a4j:ajax event="valueChange" render="processOverview" execute="@form" />
-                </h:selectOneMenu>
-            </h:form>
-            <h:form>
-                <rich:extendedDataTable id="processOverview" value="#{testerBean.processes}" var="process" noDataLabel="No processes available for package...">
-                    <rich:column width="551px">
+        <h:form>
+            <rich:panel header="Available processes">
+                <rich:extendedDataTable id="processOverview" value="#{testerBean.availableProcesses}" var="process" noDataLabel="No processes available...">
+                    <rich:column width="300px">
                         <f:facet name="header">
                             <h:outputText value="Process" />
                         </f:facet>
-                        <h:outputText value="#{process}" />
+                        <h:outputText value="#{process.processId}" />
+                    </rich:column>
+                    <rich:column width="250px">
+                        <f:facet name="header">
+                            <h:outputText value="Package" />
+                        </f:facet>
+                        <h:outputText value="#{process.packageName}" />
                     </rich:column>
                     <rich:column width="76px">
                         <f:facet name="header">
-                            <h:outputText value="include?" />
+                            <h:outputText value="Instances" />
                         </f:facet>
-                        <h:selectBooleanCheckbox value="true" style="text-align: center;" valueChangeListener="#{testerBean.selectProcess}">
-                            <a4j:ajax />
-                        </h:selectBooleanCheckbox>
-                        <h:inputHidden value="#{process}" />
+                        <h:inputText value="#{testerBean.customerEvaluationInstances}" maxlength="4" size="4" />
                     </rich:column>
                 </rich:extendedDataTable>
-            </h:form>
-        </rich:panel>
-        <rich:panel>
-            <h:form>
-                <p>
-                    <h:outputLabel value="Number of process instances to start:" for="number" />
-                    <rich:inputNumberSlider id="number" value="#{testerBean.numberOfInstances}" minValue="1" maxValue="1000" />
-                </p>
-                <p>
-                    <h:outputLabel value="Start process instances in parallel:" for="inParallel" />
-                    <h:selectBooleanCheckbox id="inParallel" value="#{testerBean.startInParallel}" style="text-align: center;" />
-                </p>
-                <p>
-                    <h:outputLabel value="Run instances in individual sessions:" for="individual" />
-                    <h:selectBooleanCheckbox id="individual" value="#{testerBean.runInIndividualKnowledgeSession}" style="text-align: center;" />
-                </p>
-                <a4j:commandButton value="Run process(es)!" execute="@form" action="#{testerBean.startProcessInstance}"
-                    disabled="empty #{testerBean.selectedPackage} or empty #{testerBean.selectedProcess}" render="metrics" />
-            </h:form>
-        </rich:panel>
+            </rich:panel>
+            <rich:panel>
+                <h:panelGrid columns="3">
+                    <h:panelGroup>
+                        <h:panelGrid columns="2">
+                            <h:outputLabel value="Start process instances in parallel:" />
+                            <h:selectBooleanCheckbox value="#{testerBean.startInParallel}" />
+                            <h:outputLabel value="Run instances in individual sessions:" />
+                            <h:selectBooleanCheckbox value="#{testerBean.runInIndividualKnowledgeSession}" />
+                        </h:panelGrid>
+                    </h:panelGroup>
+                    <a4j:commandButton value="Run!" action="#{testerBean.startProcessInstances}" disabled="empty #{testerBean.availableProcesses}"
+                        status="runStatus" render="metrics" style="margin-left:100px;" />
+                    <a4j:status name="runStatus">
+                        <f:facet name="start">
+                            <h:graphicImage value="/resources/img/loader.gif" style="margin-left:30px;"/>
+                        </f:facet>
+                    </a4j:status>
+                </h:panelGrid>
+            </rich:panel>
+        </h:form>
         <rich:panel header="Metrics">
             <h:form>
                 <h:inputTextarea id="metrics" value="#{testerBean.currentMetrics}" readonly="true" cols="101" rows="10" />
