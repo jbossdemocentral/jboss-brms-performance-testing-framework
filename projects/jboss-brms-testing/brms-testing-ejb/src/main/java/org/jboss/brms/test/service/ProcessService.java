@@ -55,11 +55,17 @@ public class ProcessService {
             }
         }
 
-        // TODO: Use polling to get there.
-        try {
-            Thread.sleep(5000);
-        } catch (final InterruptedException e) {
-            e.printStackTrace();
+        if (parameters.isStartInParallel()) {
+            // TODO: Use events or polling to determine when the test is over.
+            long delay = 0;
+            for (final ProcessIndicator indicator : parameters.getIndicators()) {
+                delay += indicator.getNumberOfInstances() * 250;
+            }
+            try {
+                Thread.sleep(delay);
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         collector.endTest();
 
