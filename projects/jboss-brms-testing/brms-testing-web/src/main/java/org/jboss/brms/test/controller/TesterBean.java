@@ -53,6 +53,8 @@ public class TesterBean implements Serializable {
     private boolean startInParallel;
     private boolean runInIndividualKnowledgeSession;
 
+    private String currentMetrics;
+
     public List<SelectItem> getPackageList() {
         log.info("Retrieving packages from Guvnor...");
 
@@ -185,6 +187,10 @@ public class TesterBean implements Serializable {
         final Metrics metrics = processService.runProcesses(parameters);
 
         // Temp output:
-        log.info(metrics.printAll());
+        currentMetrics = metrics.printAll();
+    }
+
+    public String getCurrentMetrics() {
+        return currentMetrics;
     }
 }

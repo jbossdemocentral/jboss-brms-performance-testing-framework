@@ -46,7 +46,12 @@
                     <h:selectBooleanCheckbox id="individual" value="#{testerBean.runInIndividualKnowledgeSession}" style="text-align: center;" />
                 </p>
                 <a4j:commandButton value="Run process(es)!" execute="@form" action="#{testerBean.startProcessInstance}"
-                    disabled="empty #{testerBean.selectedPackage} or empty #{testerBean.selectedProcess}" />
+                    disabled="empty #{testerBean.selectedPackage} or empty #{testerBean.selectedProcess}" render="metrics" />
+            </h:form>
+        </rich:panel>
+        <rich:panel header="Metrics">
+            <h:form>
+                <h:inputTextarea id="metrics" value="#{testerBean.currentMetrics}" readonly="true" cols="101" rows="10" />
             </h:form>
         </rich:panel>
     </ui:define>
