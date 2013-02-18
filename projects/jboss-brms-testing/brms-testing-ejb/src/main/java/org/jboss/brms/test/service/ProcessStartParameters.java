@@ -1,9 +1,13 @@
 package org.jboss.brms.test.service;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProcessStartParameters {
+public class ProcessStartParameters implements Serializable {
+    /** Serial version ID. */
+    private static final long serialVersionUID = 1L;
+
     private List<ProcessIndicator> indicators;
     private boolean startInParallel;
     private boolean runInIndividualKnowledgeSession;
@@ -39,7 +43,10 @@ public class ProcessStartParameters {
         this.runInIndividualKnowledgeSession = runInIndividualKnowledgeSession;
     }
 
-    public static class ProcessIndicator {
+    public static class ProcessIndicator implements Serializable {
+        /** Serial version ID. */
+        private static final long serialVersionUID = 1L;
+
         private final String packageName;
         private final String processId;
         private final int numberOfInstances;
