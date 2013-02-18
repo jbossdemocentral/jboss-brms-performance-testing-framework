@@ -57,11 +57,11 @@ public class ProcessEventListener extends DefaultProcessEventListener {
         if (event.getNodeInstance() instanceof RuleSetNodeInstance) {
             // Set the event in the corresponding rule.
             final RuleSetNode rsn = (RuleSetNode) ((RuleSetNodeInstance) event.getNodeInstance()).getNode();
-            metricsService.setRuleEndTime(metricsId, rsn.getRuleFlowGroup(), rsn.getUniqueId());
+            metricsService.setRuleEndTime(getProcInstFromEvent(event), rsn.getRuleFlowGroup(), rsn.getUniqueId());
         } else if (event.getNodeInstance() instanceof HumanTaskNodeInstance) {
             // Set the event in the corresponding Human Task.
             final HumanTaskNode htn = (HumanTaskNode) ((HumanTaskNodeInstance) event.getNodeInstance()).getNode();
-            metricsService.setHumanTaskEndTime(metricsId, (String) htn.getWork().getParameter("TaskName"), htn.getUniqueId());
+            metricsService.setHumanTaskEndTime(getProcInstFromEvent(event), (String) htn.getWork().getParameter("TaskName"), htn.getUniqueId());
         }
     }
 

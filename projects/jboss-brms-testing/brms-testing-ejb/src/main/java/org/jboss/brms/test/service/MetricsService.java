@@ -159,20 +159,24 @@ public class MetricsService {
     /**
      * Find a {@link MeasuredRule}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this rule belongs to.
+     * @param identifier
+     *            Data to uniquely identify a process instance.
      * @param ruleFlowGroup
      *            The group ID of the required rule.
      * @param nodeId
      *            The unique ID of the Rule node this rule was called for.
      * @return The intended rule, or <code>null</code> if it was not available.
      */
-    public MeasuredRule findRule(final Long metricsId, final String ruleFlowGroup, final String nodeId) {
+    public MeasuredRule findRule(final ProcessInstanceIdentifier identifier, final String ruleFlowGroup, final String nodeId) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<MeasuredRule> cq = cb.createQuery(MeasuredRule.class);
         final Root<MeasuredRule> ruleRoot = cq.from(MeasuredRule.class);
-        cq.where(cb.equal(ruleRoot.get(MeasuredRule_.metricsId), metricsId), cb.equal(ruleRoot.get(MeasuredRule_.ruleFlowGroup), ruleFlowGroup),
-                cb.equal(ruleRoot.get(MeasuredRule_.nodeId), nodeId));
+        cq.where(cb.equal(ruleRoot.get(MeasuredRule_.identifier).get(ProcessInstanceIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(ruleRoot.get(MeasuredRule_.identifier).get(ProcessInstanceIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(ruleRoot.get(MeasuredRule_.identifier).get(ProcessInstanceIdentifier_.processId), identifier.getProcessId()),
+                cb.equal(ruleRoot.get(MeasuredRule_.identifier).get(ProcessInstanceIdentifier_.ksessionId), identifier.getKsessionId()),
+                cb.equal(ruleRoot.get(MeasuredRule_.identifier).get(ProcessInstanceIdentifier_.processInstanceId), identifier.getProcessInstanceId()),
+                cb.equal(ruleRoot.get(MeasuredRule_.ruleFlowGroup), ruleFlowGroup), cb.equal(ruleRoot.get(MeasuredRule_.nodeId), nodeId));
         MeasuredRule rule = null;
         try {
             rule = em.createQuery(cq).getSingleResult();
@@ -187,20 +191,24 @@ public class MetricsService {
     /**
      * Find a {@link MeasuredHumanTask}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this task belongs to.
+     * @param identifier
+     *            Data to uniquely identify a process instance.
      * @param taskName
      *            The name of the required task.
      * @param nodeId
      *            The unique ID of the Human Task node this task was called for.
      * @return The intended task, or <code>null</code> if it was not available.
      */
-    public MeasuredHumanTask findHumanTask(final Long metricsId, final String taskName, final String nodeId) {
+    public MeasuredHumanTask findHumanTask(final ProcessInstanceIdentifier identifier, final String taskName, final String nodeId) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<MeasuredHumanTask> cq = cb.createQuery(MeasuredHumanTask.class);
         final Root<MeasuredHumanTask> taskRoot = cq.from(MeasuredHumanTask.class);
-        cq.where(cb.equal(taskRoot.get(MeasuredHumanTask_.metricsId), metricsId), cb.equal(taskRoot.get(MeasuredHumanTask_.taskName), taskName),
-                cb.equal(taskRoot.get(MeasuredHumanTask_.nodeId), nodeId));
+        cq.where(cb.equal(taskRoot.get(MeasuredHumanTask_.identifier).get(ProcessInstanceIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(taskRoot.get(MeasuredHumanTask_.identifier).get(ProcessInstanceIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(taskRoot.get(MeasuredHumanTask_.identifier).get(ProcessInstanceIdentifier_.processId), identifier.getProcessId()),
+                cb.equal(taskRoot.get(MeasuredHumanTask_.identifier).get(ProcessInstanceIdentifier_.ksessionId), identifier.getKsessionId()),
+                cb.equal(taskRoot.get(MeasuredHumanTask_.identifier).get(ProcessInstanceIdentifier_.processInstanceId), identifier.getProcessInstanceId()),
+                cb.equal(taskRoot.get(MeasuredHumanTask_.taskName), taskName), cb.equal(taskRoot.get(MeasuredHumanTask_.nodeId), nodeId));
         MeasuredHumanTask task = null;
         try {
             task = em.createQuery(cq).getSingleResult();
@@ -278,7 +286,7 @@ public class MetricsService {
 
     public void setRuleStartTime(final ProcessInstanceIdentifier identifier, final String ruleFlowGroup, final String nodeId) {
         // Create the rule (one for each call).
-        final MeasuredRule rule = em.merge(new MeasuredRule(identifier.getMetricsId(), ruleFlowGroup, nodeId));
+        final MeasuredRule rule = em.merge(new MeasuredRule(identifier, ruleFlowGroup, nodeId));
 
         // Add it to the corresponding process instance.
         final MeasuredProcessInstance processInstance = findProcessInstance(identifier);
@@ -291,13 +299,13 @@ public class MetricsService {
         rule.setStartingTime(new Date());
     }
 
-    public void setRuleEndTime(final Long metricsId, final String ruleFlowGroup, final String nodeId) {
-        findRule(metricsId, ruleFlowGroup, nodeId).setEndingTime(new Date());
+    public void setRuleEndTime(final ProcessInstanceIdentifier identifier, final String ruleFlowGroup, final String nodeId) {
+        findRule(identifier, ruleFlowGroup, nodeId).setEndingTime(new Date());
     }
 
     public void setHumanTaskStartTime(final ProcessInstanceIdentifier identifier, final String taskName, final String groupId, final String nodeId) {
         // Create the task (one for each call).
-        final MeasuredHumanTask task = em.merge(new MeasuredHumanTask(identifier.getMetricsId(), taskName, groupId, nodeId));
+        final MeasuredHumanTask task = em.merge(new MeasuredHumanTask(identifier, taskName, groupId, nodeId));
 
         // Add it to the corresponding process instance.
         final MeasuredProcessInstance processInstance = findProcessInstance(identifier);
@@ -310,7 +318,7 @@ public class MetricsService {
         task.setStartingTime(new Date());
     }
 
-    public void setHumanTaskEndTime(final Long metricsId, final String taskName, final String nodeId) {
-        findHumanTask(metricsId, taskName, nodeId).setEndingTime(new Date());
+    public void setHumanTaskEndTime(final ProcessInstanceIdentifier identifier, final String taskName, final String nodeId) {
+        findHumanTask(identifier, taskName, nodeId).setEndingTime(new Date());
     }
 }

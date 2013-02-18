@@ -4,9 +4,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.ObjectUtils;
@@ -21,10 +23,10 @@ public class MeasuredRule extends PersistentObject {
     /** Serial version identifier. */
     private static final long serialVersionUID = 1L;
 
-    /** The ID of the {@link Metrics} object this rule belongs to. */
-    @Column(nullable = false, updatable = false)
-    @NotNull
-    private Long metricsId;
+    /** Data to uniquely identify the process instance the rule instance belongs to. */
+    @Embedded
+    @Valid
+    private ProcessInstanceIdentifier identifier;
 
     /** The identifier of the rule flow group. */
     @Column(nullable = false, updatable = false)
@@ -51,25 +53,25 @@ public class MeasuredRule extends PersistentObject {
     /**
      * Parameterized constructor, for use by the {@link MetricsService}.
      * 
-     * @param metricsId
-     *            The ID of the {@link Metrics} this package belongs to.
+     * @param identifier
+     *            Data to uniquely identify a process instance.
      * @param ruleFlowGroup
      *            The identifier of the rule flow group.
      * @param nodeId
      *            The unique ID of the Rule node this call was made for.
      */
-    public MeasuredRule(final Long metricsId, final String ruleFlowGroup, final String nodeId) {
-        this.metricsId = metricsId;
+    public MeasuredRule(final ProcessInstanceIdentifier identifier, final String ruleFlowGroup, final String nodeId) {
+        this.identifier = identifier;
         this.ruleFlowGroup = ruleFlowGroup;
         this.nodeId = nodeId;
     }
 
-    public Long getMetricsId() {
-        return metricsId;
+    public ProcessInstanceIdentifier getIdentifier() {
+        return identifier;
     }
 
-    void setMetricsId(final Long metricsId) {
-        this.metricsId = metricsId;
+    void setIdentifier(final ProcessInstanceIdentifier identifier) {
+        this.identifier = identifier;
     }
 
     public String getRuleFlowGroup() {
@@ -121,7 +123,7 @@ public class MeasuredRule extends PersistentObject {
     @Override
     public int hashCode() {
         int result = HASH_SEED;
-        result = (PRIME * result) + ObjectUtils.hashCode(metricsId);
+        result = (PRIME * result) + ObjectUtils.hashCode(identifier);
         result = (PRIME * result) + ObjectUtils.hashCode(ruleFlowGroup);
         result = (PRIME * result) + ObjectUtils.hashCode(nodeId);
         return result;
@@ -138,7 +140,7 @@ public class MeasuredRule extends PersistentObject {
         }
 
         final MeasuredRule other = (MeasuredRule) obj;
-        return ObjectUtils.equals(metricsId, other.getMetricsId()) && ObjectUtils.equals(ruleFlowGroup, other.getRuleFlowGroup())
+        return ObjectUtils.equals(identifier, other.getIdentifier()) && ObjectUtils.equals(ruleFlowGroup, other.getRuleFlowGroup())
                 && ObjectUtils.equals(nodeId, other.getNodeId());
     }
 
