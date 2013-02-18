@@ -15,8 +15,12 @@ import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
+import org.jboss.brms.test.guvnor.Assets;
+import org.jboss.brms.test.guvnor.Packages;
+import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
 import org.jboss.brms.test.util.GuvnorRestUtil;
 import org.jboss.brms.test.util.Resources.GuvnorConfig;
+import org.jboss.brms.test.util.XPathUtil;
 
 @Stateless
 public class GuvnorService {
@@ -28,6 +32,10 @@ public class GuvnorService {
     private static final String GUVNOR_CONFIG_URL = "guvnor.url";
     private static final String GUVNOR_CONFIG_USER_NAME = "guvnor.user";
     private static final String GUVNOR_CONFIG_PASSWORD = "guvnor.password";
+
+    private static final String GUVNOR_API_PACKAGES_PATH = "/packages";
+    private static final String GUVNOR_API_ASSETS_PATH = GUVNOR_API_PACKAGES_PATH + "/{0}/assets";
+    private static final String GUVNOR_API_BPMN_SOURCE_PATH = GUVNOR_API_ASSETS_PATH + "/{1}/source";
 
     @Inject
     @GuvnorConfig
@@ -53,6 +61,44 @@ public class GuvnorService {
         final String changeSet = MessageFormat.format(CHANGESET_PATTERN, resources.toArray());
         kbuilder.add(ResourceFactory.newByteArrayResource(changeSet.getBytes()), ResourceType.CHANGE_SET);
         return kbuilder.newKnowledgeBase();
+    }
+
+    /**
+     * Retrieve the available (BPMN2) processes from Guvnor.
+     * 
+     * @return A list of the available package-process ID tuples.
+     */
+    public List<ProcessIndicator> getProcessesFromGuvnor() {
+        final List<ProcessIndicator> processes = new ArrayList<ProcessStartParameters.ProcessIndicator>();
+
+        // Call Guvnor to retrieve the available packages.
+        final Packages packages = getFromGuvnor(GUVNOR_API_PACKAGES_PATH, Packages.class);
+        for (final org.jboss.brms.test.guvnor.Packages.Package pakkage : packages.getPackage()) {
+            // Call Guvnor to retrieve the available assets.
+            final Assets assets = getFromGuvnor(MessageFormat.format(GUVNOR_API_ASSETS_PATH, pakkage.getTitle()), Assets.class);
+            if ((assets == null) || (assets.getAsset() == null) || assets.getAsset().isEmpty()) {
+                log.info("Currently no assets for package " + pakkage.getTitle() + " in Guvnor!");
+            } else {
+                for (final org.jboss.brms.test.guvnor.Assets.Asset asset : assets.getAsset()) {
+                    final String assetName = asset.getRefLink().substring(asset.getRefLink().lastIndexOf("/") + 1);
+                    final String format = asset.getMetadata().getFormat();
+                    if ("bpmn2".equals(format)) {
+                        // Call Guvnor for the BPMN definition (to get the process ID from).
+                        final String bpmn = getFromGuvnor(MessageFormat.format(GUVNOR_API_BPMN_SOURCE_PATH, pakkage.getTitle(), assetName),
+                                MediaType.TEXT_PLAIN_TYPE);
+                        final String processId = XPathUtil.getProcessIdFromBpmn(bpmn);
+                        processes.add(new ProcessIndicator(pakkage.getTitle(), processId, 0));
+                    }
+                }
+            }
+        }
+
+        return processes;
+    }
+
+    public boolean isProcessAvailable(final String packageName, final String processName, final String processId) {
+        final String bpmn = getFromGuvnor(MessageFormat.format(GUVNOR_API_BPMN_SOURCE_PATH, packageName, processName), MediaType.TEXT_PLAIN_TYPE);
+        return processId.equals(XPathUtil.getProcessIdFromBpmn(bpmn));
     }
 
     /**
