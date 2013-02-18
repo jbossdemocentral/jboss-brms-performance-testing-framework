@@ -10,6 +10,7 @@
 
     <modules>
         <module>brms-testing-ejb</module>
+        <module>brms-testing-examples</module>
         <module>brms-testing-web</module>
         <module>brms-testing-ear</module>
     </modules>

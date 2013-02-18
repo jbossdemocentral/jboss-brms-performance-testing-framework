@@ -7,6 +7,7 @@ import org.drools.KnowledgeBase;
 import org.drools.builder.ResourceType;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.process.ProcessInstance;
+import org.jboss.brms.test.service.ProcessInstanceRunner;
 import org.jbpm.test.JbpmJUnitTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -102,5 +103,15 @@ public class CustomerEvalProcessTest extends JbpmJUnitTestCase {
 
         // Print metrics.
         // System.out.println(collector.getMetrics().printAll());
+    }
+
+    @Test
+    public void dataProviderTest() {
+        // Run the process using the data provider (which has the Rich Customer scenario).
+        new ProcessInstanceRunner().runSync(ksession, "org.jbpm.customer-evaluation", false);
+
+        // Process instance ID = 0, as each test has its own session.
+        assertProcessInstanceCompleted(0, ksession);
+        assertNodeTriggered(0, "End Rich Customer");
     }
 }
