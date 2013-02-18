@@ -120,18 +120,18 @@ public class MeasuredHumanTask extends PersistentObject {
     }
 
     public String print() {
-        final StringBuilder sb = new StringBuilder().append("\n\n    MeasuredHumanTask:\n     * Task Name: ").append(taskName);
+        final StringBuilder sb = new StringBuilder().append("\n\n\t\t\t\tMeasuredHumanTask:\n\t\t\t\t* Task Name: ").append(taskName);
         if (groupId != null) {
-            sb.append("\n     * Group ID: ").append(groupId);
+            sb.append("\n\t\t\t\t* Group ID: ").append(groupId);
         }
         final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         if (endingTime != null) {
-            sb.append("\n     * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+            sb.append("\n\t\t\t\t* Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
                     .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
         } else if (startingTime != null) {
-            sb.append("\n     * Task executed at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+            sb.append("\n\t\t\t\t* Task executed at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
         } else {
-            sb.append("\n     * Rule not executed yet.");
+            sb.append("\n\t\t\t\t* Rule not executed yet.");
         }
         return sb.toString();
     }

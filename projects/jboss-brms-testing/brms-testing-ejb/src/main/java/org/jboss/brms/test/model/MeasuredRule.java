@@ -105,15 +105,15 @@ public class MeasuredRule extends PersistentObject {
     }
 
     public String print() {
-        final StringBuilder sb = new StringBuilder().append("\n\n    MeasuredRule:\n     * Rule flow group: ").append(ruleFlowGroup);
+        final StringBuilder sb = new StringBuilder().append("\n\n\t\t\t\tMeasuredRule:\n\t\t\t\t* Rule flow group: ").append(ruleFlowGroup);
         final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         if (endingTime != null) {
-            sb.append("\n     * Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
+            sb.append("\n\t\t\t\t* Duration: ").append(endingTime.getTime() - startingTime.getTime()).append(" ms (starting time = ")
                     .append(timeFormat.format(startingTime)).append(", ending time = ").append(timeFormat.format(endingTime)).append(")");
         } else if (startingTime != null) {
-            sb.append("\n     * Rule activated at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
+            sb.append("\n\t\t\t\t* Rule activated at ").append(timeFormat.format(startingTime)).append(" but did not end yet.");
         } else {
-            sb.append("\n     * Rule not activated yet.");
+            sb.append("\n\t\t\t\t* Rule not activated yet.");
         }
         return sb.toString();
     }
