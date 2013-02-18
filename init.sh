@@ -94,8 +94,8 @@ echo
 unzip -q -d $SERVER_DIR/deployments support/brms-testing.zip
 # Enable deployment of the framework EAR.
 touch $SERVER_DIR/deployments/brms-testing.ear.dodeploy
-# Copy model for customer evaluation process.
-cp support/CustomerEvalModel.jar $SERVER_DIR/deployments/brms-testing.ear/lib
+# Copy dependencies (model, work item handlers, dataproviders) for the example processes.
+cp support/brms-testing-examples.jar $SERVER_DIR/deployments/brms-testing.ear/lib
 
 echo "Setup BRMS $BRMS_VERSION (integrated with EAP $EAP_VERSION) Performance Test Framework Complete."
 echo
