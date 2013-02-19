@@ -9,7 +9,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.jboss.brms.test.model.Metrics;
+import org.jboss.brms.test.model.ProcessIdentifier;
 import org.jboss.brms.test.service.GuvnorService;
+import org.jboss.brms.test.service.MetricsService;
 import org.jboss.brms.test.service.ProcessService;
 import org.jboss.brms.test.service.ProcessStartParameters;
 import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
@@ -30,11 +32,15 @@ public class TesterBean implements Serializable {
     @Inject
     private ProcessService processService;
 
+    @Inject
+    private MetricsService metricsService;
+
     private boolean startInParallel;
     private boolean runInIndividualKnowledgeSession;
     private int customerEvaluationInstances = 1;
 
-    private String currentMetrics;
+    private Long currentMetricsId;
+    private boolean pollEnabled = false;
 
     public List<ProcessIndicator> getAvailableProcesses() {
         final List<ProcessIndicator> processes = new ArrayList<ProcessStartParameters.ProcessIndicator>();
@@ -71,19 +77,43 @@ public class TesterBean implements Serializable {
     }
 
     public void startProcessInstances() {
+        pollEnabled = true;
+
         final ProcessStartParameters parameters = new ProcessStartParameters();
 
         parameters.addIndicator(new ProcessIndicator(CUSTOMER_EVALUATION_PACKAGE, CUSTOMER_EVALUATION_ID, getCustomerEvaluationInstances()));
 
         parameters.setRunInIndividualKnowledgeSession(isRunInIndividualKnowledgeSession());
         parameters.setStartInParallel(isStartInParallel());
-        final Metrics metrics = processService.runProcesses(parameters);
+        currentMetricsId = processService.runProcesses(parameters);
+    }
 
-        // Temp output:
-        currentMetrics = metrics.printAll();
+    public boolean isPollEnabled() {
+        return pollEnabled;
+    }
+
+    public int getNumberOfInstancesStarted() {
+        return metricsService.getNumberOfInstancesStarted(new ProcessIdentifier(currentMetricsId, CUSTOMER_EVALUATION_PACKAGE, CUSTOMER_EVALUATION_ID));
+    }
+
+    public int getNumberOfInstancesEnded() {
+        final int numOfInst = metricsService.getNumberOfInstancesEnded(new ProcessIdentifier(currentMetricsId, CUSTOMER_EVALUATION_PACKAGE,
+                CUSTOMER_EVALUATION_ID));
+        if (numOfInst == getCustomerEvaluationInstances()) {
+            // Test finished.
+            pollEnabled = false;
+        }
+        return numOfInst;
     }
 
     public String getCurrentMetrics() {
-        return currentMetrics;
+        String output = null;
+        if (!pollEnabled) {
+            final Metrics metrics = metricsService.findMetricsById(currentMetricsId);
+            if (metrics != null) {
+                output = metrics.printAll();
+            }
+        }
+        return output;
     }
 }

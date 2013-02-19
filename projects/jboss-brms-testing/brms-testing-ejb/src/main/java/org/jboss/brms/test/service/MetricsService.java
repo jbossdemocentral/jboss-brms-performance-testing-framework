@@ -3,6 +3,7 @@ package org.jboss.brms.test.service;
 import java.lang.management.ManagementFactory;
 import java.util.Date;
 
+import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -29,6 +30,7 @@ import org.jboss.brms.test.model.ProcessIdentifier;
 import org.jboss.brms.test.model.ProcessIdentifier_;
 import org.jboss.brms.test.model.ProcessInstanceIdentifier;
 import org.jboss.brms.test.model.ProcessInstanceIdentifier_;
+import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
 
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -320,5 +322,58 @@ public class MetricsService {
 
     public void setHumanTaskEndTime(final ProcessInstanceIdentifier identifier, final String taskName, final String nodeId) {
         findHumanTask(identifier, taskName, nodeId).setEndingTime(new Date());
+    }
+
+    public int getNumberOfInstancesStarted(final ProcessIdentifier identifier) {
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
+        cq.where(
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.processId), identifier.getProcessId()));
+        cq.select(cb.countDistinct(processInstanceRoot));
+        return em.createQuery(cq).getSingleResult().intValue();
+    }
+
+    public int getNumberOfInstancesEnded(final ProcessIdentifier identifier) {
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
+        cq.where(
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.processId), identifier.getProcessId()),
+                cb.isNotNull(processInstanceRoot.get(MeasuredProcessInstance_.endingTime)));
+        cq.select(cb.countDistinct(processInstanceRoot));
+        return em.createQuery(cq).getSingleResult().intValue();
+    }
+
+    @Asynchronous
+    public void waitForTestToEnd(final ProcessStartParameters parameters, final Long metricsId) {
+        if (parameters.isStartInParallel()) {
+            boolean stillProcessing = true;
+            do {
+                // Check whether the instances are all done.
+                stillProcessing = false;
+                for (final ProcessIndicator indicator : parameters.getIndicators()) {
+                    if (getNumberOfInstancesEnded(new ProcessIdentifier(metricsId, indicator.getPackageName(), indicator.getProcessId())) < indicator
+                            .getNumberOfInstances()) {
+                        stillProcessing = true;
+                        break;
+                    }
+                }
+                if (stillProcessing) {
+                    // Wait for the next check.
+                    try {
+                        Thread.sleep(250);
+                    } catch (final InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } while (stillProcessing);
+        }
+        setTestEndTime(metricsId);
+        log.info("Test with Metrics ID=" + metricsId + " has ended.");
     }
 }

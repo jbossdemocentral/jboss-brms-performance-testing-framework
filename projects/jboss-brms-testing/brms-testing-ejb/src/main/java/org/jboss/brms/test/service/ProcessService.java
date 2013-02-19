@@ -26,13 +26,22 @@ public class ProcessService {
     @EJB
     private ProcessInstanceRunner runner;
 
-    public Metrics runProcesses(final ProcessStartParameters parameters) {
+    /**
+     * Run instances for the processes given in the parameters, as indicated.
+     * 
+     * @param parameters
+     *            Indicate how many instances of which process are to be run, in which manner.
+     * @return The (database) ID of the {@link Metrics} object that collects all metrics for this test run.
+     */
+    public Long runProcesses(final ProcessStartParameters parameters) {
         for (final ProcessIndicator indicator : parameters.getIndicators()) {
             log.info("Running " + indicator.getNumberOfInstances() + " process instance(s) for process " + indicator.getProcessId() + " contained in package "
                     + indicator.getPackageName());
         }
 
         final MetricsCollector collector = new MetricsCollector(metricsService, parameters);
+        final Long metricsId = collector.getMetricsId();
+
         collector.startTest();
         for (final ProcessIndicator indicator : parameters.getIndicators()) {
             // If found, use a knowledge builder with corresponding change set to create a knowledge base.
@@ -54,21 +63,8 @@ public class ProcessService {
                 }
             }
         }
+        metricsService.waitForTestToEnd(parameters, metricsId);
 
-        if (parameters.isStartInParallel()) {
-            // TODO: Use events or polling to determine when the test is over.
-            long delay = 0;
-            for (final ProcessIndicator indicator : parameters.getIndicators()) {
-                delay += indicator.getNumberOfInstances() * 250;
-            }
-            try {
-                Thread.sleep(delay);
-            } catch (final InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        collector.endTest();
-
-        return collector.getMetrics();
+        return metricsId;
     }
 }

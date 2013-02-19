@@ -64,11 +64,7 @@ public class MetricsCollector {
         metricsService.setTestStartTime(metricsId);
     }
 
-    public void endTest() {
-        metricsService.setTestEndTime(metricsId);
-    }
-
-    public Metrics getMetrics() {
-        return metricsService.findMetricsById(metricsId);
+    public Long getMetricsId() {
+        return metricsId;
     }
 }

@@ -37,10 +37,10 @@
                         </h:panelGrid>
                     </h:panelGroup>
                     <a4j:commandButton value="Run!" action="#{testerBean.startProcessInstances}" disabled="empty #{testerBean.availableProcesses}"
-                        status="runStatus" render="metrics" style="margin-left:100px;" />
+                        status="runStatus" render="poll,grid,metrics" style="margin-left:100px;" />
                     <a4j:status name="runStatus">
                         <f:facet name="start">
-                            <h:graphicImage value="/resources/img/loader.gif" style="margin-left:30px;"/>
+                            <h:graphicImage value="/resources/img/loader.gif" style="margin-left:30px;" />
                         </f:facet>
                     </a4j:status>
                 </h:panelGrid>
@@ -48,7 +48,16 @@
         </h:form>
         <rich:panel header="Metrics">
             <h:form>
-                <h:inputTextarea id="metrics" value="#{testerBean.currentMetrics}" readonly="true" cols="101" rows="10" />
+                <a4j:poll id="poll" interval="500" enabled="#{testerBean.pollEnabled}" render="poll,grid,metrics" />
+            </h:form>
+            <h:form>
+                <h:panelGrid id="grid" columns="2">
+                    <h:outputLabel value="Process instances started:" />
+                    <h:outputText value="#{testerBean.numberOfInstancesStarted}" />
+                    <h:outputLabel value="Process instances ended:" />
+                    <h:outputText value="#{testerBean.numberOfInstancesEnded}" />
+                </h:panelGrid>
+                <h:inputTextarea id="metrics" value="#{testerBean.currentMetrics}" readonly="true" cols="101" rows="10"/>
             </h:form>
         </rich:panel>
     </ui:define>
