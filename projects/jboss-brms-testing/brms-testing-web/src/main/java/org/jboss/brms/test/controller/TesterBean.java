@@ -12,6 +12,7 @@ import org.jboss.brms.test.model.Metrics;
 import org.jboss.brms.test.model.ProcessIdentifier;
 import org.jboss.brms.test.service.GuvnorService;
 import org.jboss.brms.test.service.MetricsService;
+import org.jboss.brms.test.service.ProcessRuntimeMetrics;
 import org.jboss.brms.test.service.ProcessService;
 import org.jboss.brms.test.service.ProcessStartParameters;
 import org.jboss.brms.test.service.ProcessStartParameters.ProcessIndicator;
@@ -41,6 +42,9 @@ public class TesterBean implements Serializable {
 
     private Long currentMetricsId;
     private boolean pollEnabled = false;
+    private long processMeanRuntime;
+    private long processMinRuntime;
+    private long processMaxRuntime;
 
     public List<ProcessIndicator> getAvailableProcesses() {
         final List<ProcessIndicator> processes = new ArrayList<ProcessStartParameters.ProcessIndicator>();
@@ -78,6 +82,9 @@ public class TesterBean implements Serializable {
 
     public void startProcessInstances() {
         pollEnabled = true;
+        processMeanRuntime = 0;
+        processMinRuntime = 0;
+        processMaxRuntime = 0;
 
         final ProcessStartParameters parameters = new ProcessStartParameters();
 
@@ -102,13 +109,33 @@ public class TesterBean implements Serializable {
         if (numOfInst == getCustomerEvaluationInstances()) {
             // Test finished.
             pollEnabled = false;
+
+            // Get statistical metrics.
+            final ProcessRuntimeMetrics rtm = metricsService.getMeanRunningTimeOfInstances(new ProcessIdentifier(currentMetricsId, CUSTOMER_EVALUATION_PACKAGE,
+                    CUSTOMER_EVALUATION_ID));
+            processMeanRuntime = rtm.getMeanRuntime();
+            processMinRuntime = rtm.getMinRuntime();
+            processMaxRuntime = rtm.getMaxRuntime();
         }
         return numOfInst;
+    }
+
+    public long getProcessMeanRuntime() {
+        return processMeanRuntime;
+    }
+
+    public long getProcessMinRuntime() {
+        return processMinRuntime;
+    }
+
+    public long getProcessMaxRuntime() {
+        return processMaxRuntime;
     }
 
     public String getCurrentMetrics() {
         String output = null;
         if (!pollEnabled) {
+            // Get raw metrics.
             final Metrics metrics = metricsService.findMetricsById(currentMetricsId);
             if (metrics != null) {
                 output = metrics.printAll();

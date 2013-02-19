@@ -51,13 +51,29 @@
                 <a4j:poll id="poll" interval="500" enabled="#{testerBean.pollEnabled}" render="poll,grid,metrics" />
             </h:form>
             <h:form>
-                <h:panelGrid id="grid" columns="2">
+                <h:panelGrid id="grid" columns="6" columnClasses="mta,mtb,mtc,mtd,mte,mtf">
                     <h:outputLabel value="Process instances started:" />
                     <h:outputText value="#{testerBean.numberOfInstancesStarted}" />
+                    <h:outputLabel />
+                    <h:outputLabel value="Mean process runtime:" />
+                    <h:outputText value="#{testerBean.processMeanRuntime}" />
+                    <h:outputLabel value="ms" />
+
                     <h:outputLabel value="Process instances ended:" />
                     <h:outputText value="#{testerBean.numberOfInstancesEnded}" />
+                    <h:outputLabel />
+                    <h:outputLabel value="Minimum process runtime:" />
+                    <h:outputText value="#{testerBean.processMinRuntime}" />
+                    <h:outputLabel value="ms" />
+
+                    <h:outputLabel />
+                    <h:outputLabel />
+                    <h:outputLabel />
+                    <h:outputLabel value="Maximum process runtime:" />
+                    <h:outputText value="#{testerBean.processMaxRuntime}" />
+                    <h:outputLabel value="ms" />
                 </h:panelGrid>
-                <h:inputTextarea id="metrics" value="#{testerBean.currentMetrics}" readonly="true" cols="101" rows="10"/>
+                <h:inputTextarea id="metrics" value="#{testerBean.currentMetrics}" readonly="true" cols="101" rows="10" />
             </h:form>
         </rich:panel>
     </ui:define>

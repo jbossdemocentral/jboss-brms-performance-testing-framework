@@ -48,3 +48,7 @@ tr.even {
 textarea {
     resize: none;
 }
+
+.mtb,.mtc,.mte {
+    min-width: 50px;
+}

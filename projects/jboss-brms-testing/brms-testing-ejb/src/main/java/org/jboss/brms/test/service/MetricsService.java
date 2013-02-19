@@ -2,6 +2,7 @@ package org.jboss.brms.test.service;
 
 import java.lang.management.ManagementFactory;
 import java.util.Date;
+import java.util.List;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
@@ -347,6 +348,37 @@ public class MetricsService {
                 cb.isNotNull(processInstanceRoot.get(MeasuredProcessInstance_.endingTime)));
         cq.select(cb.countDistinct(processInstanceRoot));
         return em.createQuery(cq).getSingleResult().intValue();
+    }
+
+    public ProcessRuntimeMetrics getMeanRunningTimeOfInstances(final ProcessIdentifier identifier) {
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<MeasuredProcessInstance> cq = cb.createQuery(MeasuredProcessInstance.class);
+        final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
+        cq.where(
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.metricsId), identifier.getMetricsId()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.packageName), identifier.getPackageName()),
+                cb.equal(processInstanceRoot.get(MeasuredProcessInstance_.identifier).get(ProcessInstanceIdentifier_.processId), identifier.getProcessId()));
+        final List<MeasuredProcessInstance> instances = em.createQuery(cq).getResultList();
+
+        final ProcessRuntimeMetrics metrics = new ProcessRuntimeMetrics();
+        long totalRuntime = 0L;
+        long totalInstances = 0;
+        for (final MeasuredProcessInstance instance : instances) {
+            if (instance.getTimeToComplete() == null) {
+                continue;
+            }
+            final long runtime = instance.getTimeToComplete().longValue();
+            totalRuntime += runtime;
+            ++totalInstances;
+            if ((metrics.getMinRuntime() == 0) || (metrics.getMinRuntime() > runtime)) {
+                metrics.setMinRuntime(runtime);
+            }
+            if ((metrics.getMaxRuntime() == 0) || (metrics.getMaxRuntime() < runtime)) {
+                metrics.setMaxRuntime(runtime);
+            }
+        }
+        metrics.setMeanRuntime(totalRuntime / totalInstances);
+        return metrics;
     }
 
     @Asynchronous
