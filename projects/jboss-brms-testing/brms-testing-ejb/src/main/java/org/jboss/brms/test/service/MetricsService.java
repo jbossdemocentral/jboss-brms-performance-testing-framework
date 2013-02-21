@@ -325,7 +325,15 @@ public class MetricsService {
         findHumanTask(identifier, taskName, nodeId).setEndingTime(new Date());
     }
 
-    public int getNumberOfInstancesStarted(final ProcessIdentifier identifier) {
+    public int getNumberOfInstancesStarted(final List<ProcessIdentifier> identifiers) {
+        int result = 0;
+        for (final ProcessIdentifier identifier : identifiers) {
+            result += getNumberOfInstancesStarted(identifier);
+        }
+        return result;
+    }
+
+    private int getNumberOfInstancesStarted(final ProcessIdentifier identifier) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
         final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
@@ -337,7 +345,15 @@ public class MetricsService {
         return em.createQuery(cq).getSingleResult().intValue();
     }
 
-    public int getNumberOfInstancesEnded(final ProcessIdentifier identifier) {
+    public int getNumberOfInstancesEnded(final List<ProcessIdentifier> identifiers) {
+        int result = 0;
+        for (final ProcessIdentifier identifier : identifiers) {
+            result += getNumberOfInstancesEnded(identifier);
+        }
+        return result;
+    }
+
+    private int getNumberOfInstancesEnded(final ProcessIdentifier identifier) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
         final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
@@ -350,7 +366,31 @@ public class MetricsService {
         return em.createQuery(cq).getSingleResult().intValue();
     }
 
-    public ProcessRuntimeMetrics getMeanRunningTimeOfInstances(final ProcessIdentifier identifier) {
+    public ProcessRuntimeMetrics getRuntimeMetrics(final List<ProcessIdentifier> identifiers) {
+        final ProcessRuntimeMetrics totalMetrics = new ProcessRuntimeMetrics();
+        long sumOfRuntimes = 0;
+        long sumOfInstances = 0;
+        for (final ProcessIdentifier identifier : identifiers) {
+            final ProcessRuntimeMetrics procMetrics = getRuntimeMetrics(identifier);
+            sumOfRuntimes += procMetrics.getMeanRuntime() * procMetrics.getNumberOfInstances();
+            sumOfInstances += procMetrics.getNumberOfInstances();
+            if ((totalMetrics.getMinRuntime() == 0) || (totalMetrics.getMinRuntime() > procMetrics.getMinRuntime())) {
+                totalMetrics.setMinRuntime(procMetrics.getMinRuntime());
+            }
+            if ((totalMetrics.getMaxRuntime() == 0) || (totalMetrics.getMaxRuntime() < procMetrics.getMaxRuntime())) {
+                totalMetrics.setMaxRuntime(procMetrics.getMaxRuntime());
+            }
+        }
+        totalMetrics.setNumberOfInstances(sumOfInstances);
+        if (sumOfInstances != 0) {
+            totalMetrics.setMeanRuntime(sumOfRuntimes / sumOfInstances);
+        } else {
+            totalMetrics.setMeanRuntime(0);
+        }
+        return totalMetrics;
+    }
+
+    private ProcessRuntimeMetrics getRuntimeMetrics(final ProcessIdentifier identifier) {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<MeasuredProcessInstance> cq = cb.createQuery(MeasuredProcessInstance.class);
         final Root<MeasuredProcessInstance> processInstanceRoot = cq.from(MeasuredProcessInstance.class);
@@ -362,14 +402,12 @@ public class MetricsService {
 
         final ProcessRuntimeMetrics metrics = new ProcessRuntimeMetrics();
         long totalRuntime = 0L;
-        long totalInstances = 0;
         for (final MeasuredProcessInstance instance : instances) {
             if (instance.getTimeToComplete() == null) {
                 continue;
             }
             final long runtime = instance.getTimeToComplete().longValue();
             totalRuntime += runtime;
-            ++totalInstances;
             if ((metrics.getMinRuntime() == 0) || (metrics.getMinRuntime() > runtime)) {
                 metrics.setMinRuntime(runtime);
             }
@@ -377,7 +415,13 @@ public class MetricsService {
                 metrics.setMaxRuntime(runtime);
             }
         }
-        metrics.setMeanRuntime(totalRuntime / totalInstances);
+        final long totalInstances = instances.size();
+        metrics.setNumberOfInstances(totalInstances);
+        if (totalInstances != 0) {
+            metrics.setMeanRuntime(totalRuntime / totalInstances);
+        } else {
+            metrics.setMeanRuntime(0);
+        }
         return metrics;
     }
 

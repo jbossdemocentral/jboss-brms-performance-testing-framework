@@ -49,7 +49,7 @@ public class ProcessStartParameters implements Serializable {
 
         private final String packageName;
         private final String processId;
-        private final int numberOfInstances;
+        private int numberOfInstances;
 
         public ProcessIndicator(final String packageName, final String processId, final int numberOfInstances) {
             this.packageName = packageName;
@@ -67,6 +67,10 @@ public class ProcessStartParameters implements Serializable {
 
         public int getNumberOfInstances() {
             return numberOfInstances;
+        }
+
+        public void setNumberOfInstances(final int numberOfInstances) {
+            this.numberOfInstances = numberOfInstances;
         }
     }
 }

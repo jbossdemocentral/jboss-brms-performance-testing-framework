@@ -23,10 +23,6 @@ public class TesterBean implements Serializable {
     /** Serial version ID. */
     private static final long serialVersionUID = 1L;
 
-    private static final String CUSTOMER_EVALUATION_PACKAGE = "org.jbpm.evaluation.customer";
-    private static final String CUSTOMER_EVALUATION_NAME = "customereval";
-    private static final String CUSTOMER_EVALUATION_ID = "org.jbpm.customer-evaluation";
-
     @Inject
     private GuvnorService guvnorService;
 
@@ -36,24 +32,23 @@ public class TesterBean implements Serializable {
     @Inject
     private MetricsService metricsService;
 
+    private ProcessIndicator[] processes;
     private boolean startInParallel;
     private boolean runInIndividualKnowledgeSession;
-    private int customerEvaluationInstances = 1;
 
     private Long currentMetricsId;
     private boolean pollEnabled = false;
-    private long processMeanRuntime;
-    private long processMinRuntime;
-    private long processMaxRuntime;
+    private ProcessRuntimeMetrics metrics = new ProcessRuntimeMetrics();
 
-    public List<ProcessIndicator> getAvailableProcesses() {
-        final List<ProcessIndicator> processes = new ArrayList<ProcessStartParameters.ProcessIndicator>();
-
-        if (guvnorService.isProcessAvailable(CUSTOMER_EVALUATION_PACKAGE, CUSTOMER_EVALUATION_NAME, CUSTOMER_EVALUATION_ID)) {
-            processes.add(new ProcessIndicator(CUSTOMER_EVALUATION_PACKAGE, CUSTOMER_EVALUATION_ID, 0));
+    public ProcessIndicator[] getAvailableProcesses() {
+        if ((processes == null) || (processes.length == 0)) {
+            refreshProcesses();
         }
-
         return processes;
+    }
+
+    public void refreshProcesses() {
+        processes = guvnorService.getProcessesFromGuvnor().toArray(new ProcessIndicator[0]);
     }
 
     public boolean isStartInParallel() {
@@ -72,23 +67,16 @@ public class TesterBean implements Serializable {
         this.runInIndividualKnowledgeSession = runInIndividualKnowledgeSession;
     }
 
-    public int getCustomerEvaluationInstances() {
-        return customerEvaluationInstances;
-    }
-
-    public void setCustomerEvaluationInstances(final int customerEvaluationInstances) {
-        this.customerEvaluationInstances = customerEvaluationInstances;
-    }
-
     public void startProcessInstances() {
         pollEnabled = true;
-        processMeanRuntime = 0;
-        processMinRuntime = 0;
-        processMaxRuntime = 0;
+        metrics.reset();
 
         final ProcessStartParameters parameters = new ProcessStartParameters();
-
-        parameters.addIndicator(new ProcessIndicator(CUSTOMER_EVALUATION_PACKAGE, CUSTOMER_EVALUATION_ID, getCustomerEvaluationInstances()));
+        for (final ProcessIndicator indicator : processes) {
+            if (indicator.getNumberOfInstances() > 0) {
+                parameters.addIndicator(indicator);
+            }
+        }
 
         parameters.setRunInIndividualKnowledgeSession(isRunInIndividualKnowledgeSession());
         parameters.setStartInParallel(isStartInParallel());
@@ -100,36 +88,35 @@ public class TesterBean implements Serializable {
     }
 
     public int getNumberOfInstancesStarted() {
-        return metricsService.getNumberOfInstancesStarted(new ProcessIdentifier(currentMetricsId, CUSTOMER_EVALUATION_PACKAGE, CUSTOMER_EVALUATION_ID));
+        return metricsService.getNumberOfInstancesStarted(indicatorsToIdentifiers());
     }
 
     public int getNumberOfInstancesEnded() {
-        final int numOfInst = metricsService.getNumberOfInstancesEnded(new ProcessIdentifier(currentMetricsId, CUSTOMER_EVALUATION_PACKAGE,
-                CUSTOMER_EVALUATION_ID));
-        if (numOfInst == getCustomerEvaluationInstances()) {
+        final int numOfInstEnded = metricsService.getNumberOfInstancesEnded(indicatorsToIdentifiers());
+        int expectedInstances = 0;
+        for (final ProcessIndicator indicator : processes) {
+            expectedInstances += indicator.getNumberOfInstances();
+        }
+        if (numOfInstEnded == expectedInstances) {
             // Test finished.
             pollEnabled = false;
 
             // Get statistical metrics.
-            final ProcessRuntimeMetrics rtm = metricsService.getMeanRunningTimeOfInstances(new ProcessIdentifier(currentMetricsId, CUSTOMER_EVALUATION_PACKAGE,
-                    CUSTOMER_EVALUATION_ID));
-            processMeanRuntime = rtm.getMeanRuntime();
-            processMinRuntime = rtm.getMinRuntime();
-            processMaxRuntime = rtm.getMaxRuntime();
+            metrics = metricsService.getRuntimeMetrics(indicatorsToIdentifiers());
         }
-        return numOfInst;
+        return numOfInstEnded;
     }
 
     public long getProcessMeanRuntime() {
-        return processMeanRuntime;
+        return metrics.getMeanRuntime();
     }
 
     public long getProcessMinRuntime() {
-        return processMinRuntime;
+        return metrics.getMinRuntime();
     }
 
     public long getProcessMaxRuntime() {
-        return processMaxRuntime;
+        return metrics.getMaxRuntime();
     }
 
     public String getCurrentMetrics() {
@@ -142,5 +129,15 @@ public class TesterBean implements Serializable {
             }
         }
         return output;
+    }
+
+    private List<ProcessIdentifier> indicatorsToIdentifiers() {
+        final List<ProcessIdentifier> identifiers = new ArrayList<ProcessIdentifier>();
+        for (final ProcessIndicator indicator : processes) {
+            if (indicator.getNumberOfInstances() > 0) {
+                identifiers.add(new ProcessIdentifier(currentMetricsId, indicator.getPackageName(), indicator.getProcessId()));
+            }
+        }
+        return identifiers;
     }
 }

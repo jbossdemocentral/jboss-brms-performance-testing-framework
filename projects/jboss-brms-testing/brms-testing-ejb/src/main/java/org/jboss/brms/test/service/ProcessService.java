@@ -44,7 +44,7 @@ public class ProcessService {
             packageList.add(indicator.getPackageName());
         }
         // Use a knowledge builder with corresponding change set to create a single knowledge base.
-        final KnowledgeBase kbase = guvnorService.retrieveKnowledgeBaseFromGuvnor(packageList.toArray(new String[] {}));
+        final KnowledgeBase kbase = guvnorService.retrieveKnowledgeBaseFromGuvnor(packageList.toArray(new String[0]));
 
         final MetricsCollector collector = new MetricsCollector(metricsService, parameters);
         final Long metricsId = collector.getMetricsId();

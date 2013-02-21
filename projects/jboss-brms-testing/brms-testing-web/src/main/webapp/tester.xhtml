@@ -20,13 +20,15 @@
                     </rich:column>
                     <rich:column width="76px">
                         <f:facet name="header">
-                            <h:outputText value="Instances" />
+                            <h:outputText value="# Instances" />
                         </f:facet>
-                        <h:inputText value="#{testerBean.customerEvaluationInstances}" maxlength="4" size="4" />
+                        <h:inputText value="#{process.numberOfInstances}" maxlength="4" size="4" />
                     </rich:column>
                 </rich:extendedDataTable>
+                <p />
+                <a4j:commandButton value="Refresh" action="#{testerBean.refreshProcesses}" render="processOverview" style="margin-left:578px;" />
             </rich:panel>
-            <rich:panel>
+            <rich:panel header="Execution">
                 <h:panelGrid columns="3">
                     <h:panelGroup>
                         <h:panelGrid columns="2">
@@ -36,8 +38,8 @@
                             <h:selectBooleanCheckbox value="#{testerBean.runInIndividualKnowledgeSession}" />
                         </h:panelGrid>
                     </h:panelGroup>
-                    <a4j:commandButton value="Run!" action="#{testerBean.startProcessInstances}" disabled="empty #{testerBean.availableProcesses}"
-                        status="runStatus" render="poll,grid,metrics" style="margin-left:100px;" />
+                    <a4j:commandButton value="Run!" action="#{testerBean.startProcessInstances}" execute="@form" render="poll,grid,metrics" status="runStatus"
+                        disabled="empty #{testerBean.availableProcesses}" style="margin-left:100px;" />
                     <a4j:status name="runStatus">
                         <f:facet name="start">
                             <h:graphicImage value="/resources/img/loader.gif" style="margin-left:30px;" />
