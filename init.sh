@@ -80,6 +80,8 @@ cp support/standalone.xml $SERVER_DIR/configuration
 cp support/brms-roles.properties $SERVER_DIR/configuration
 cp support/brms-users.properties $SERVER_DIR/configuration
 cp support/components.xml $SERVER_DIR/deployments/jboss-brms.war/WEB-INF
+# Add groups & users for jBPM Human Tasks
+cp support/web.xml $SERVER_DIR/deployments/jbpm-human-task.war/WEB-INF
 
 # Enable deployments of BRMS WARs.
 touch $SERVER_DIR/deployments/jboss-brms.war.dodeploy
