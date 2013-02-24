@@ -108,7 +108,7 @@ public class CustomerEvalProcessTest extends JbpmJUnitTestCase {
     @Test
     public void dataProviderTest() {
         // Run the process using the data provider (which has the Rich Customer scenario).
-        new ProcessInstanceRunner().runSync(ksession, "org.jbpm.customer-evaluation", false);
+        new ProcessInstanceRunner().runSync(ksession, "org.jbpm.customer-evaluation", false, null);
 
         // Process instance ID = 0, as each test has its own session.
         assertProcessInstanceCompleted(0, ksession);
