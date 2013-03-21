@@ -99,5 +99,11 @@ touch $SERVER_DIR/deployments/brms-testing.ear.dodeploy
 # Copy dependencies (model, work item handlers, dataproviders) for the example processes.
 cp support/brms-testing-examples.jar $SERVER_DIR/deployments/brms-testing.ear/lib
 
+echo Readme file contents:
+echo =====================================================
+cat README.md
+echo =====================================================
+echo
+
 echo "Setup BRMS $BRMS_VERSION (integrated with EAP $EAP_VERSION) Performance Test Framework Complete."
 echo
