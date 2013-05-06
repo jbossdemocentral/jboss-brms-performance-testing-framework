@@ -9,6 +9,9 @@ BRMS=brms-p-5.3.1.GA-deployable-ee6.zip
 BRMS_VERSION=5.3.1
 MVN_VERSION=5.3.1.BRMS
 
+# wipe screen.
+clear 
+
 echo
 echo Setting up the EAP + BRMS testing environment...
 echo
