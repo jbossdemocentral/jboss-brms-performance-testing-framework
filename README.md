@@ -33,5 +33,7 @@ Released versions
 
 See the tagged releases for the following versions of the product:
 
+- v0.1 moved to JBoss Demo Central.
+
 - v0.1 is BRMS 5.3.1 deployable, running on JBoss EAP 6 with rules and human task node examples.
 
